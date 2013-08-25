@@ -124,7 +124,7 @@ Prepare some of the mouse info::
 
 And, finally, annotate the sequences::
 
-   python /usr/local/share/eel-pond/annotate-seqs.py trinity-nematostella.renamed.fa nema.x.mouse.ortho nema.x.mouse.homol
+   python /usr/local/share/eel-pond/annotate-seqs.py trinity-nematostella.renamed.fa nema.x.mouse.ortho nema.x.mouse.homol mouse.namedb mouse.protein.faa
 
 This will produce a file 'trinity-nematostella.renamed.fa.annot', which
 will have sequences that look like this::
