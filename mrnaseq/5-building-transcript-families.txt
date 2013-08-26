@@ -119,7 +119,7 @@ Now, calculate putative homology (best BLAST hit) and orthology
 
 Prepare some of the mouse info::
 
-   python /usr/local/share/eel-pond/make-namedb.py mouse.protein.faa mouse.namedb
+   python /usr/local/share/eel-pond/make-namedb.py mouse.protein.faa
    python -m screed.fadbm mouse.protein.faa
 
 And, finally, annotate the sequences::
