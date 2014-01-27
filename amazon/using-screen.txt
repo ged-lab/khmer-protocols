@@ -18,8 +18,9 @@ To start screen, you run the screen command with a few options::
   screen -S <sessionname>
  
 Where *sessionname* is any meaningful or descriptive title for your screen 
-session. This creates an independent terminal session, and connects you to it. 
-
+session. Note you do not need to type the angle brackets <>, only the *sessionname*.  
+This creates an independent terminal session, and connects you to it.
+ 
 Most commands within screen are composed of a prefix key-stroke,
 followed by a command character. By default, the prefix is Ctrl-A. In
 this tutorial Ctrl-A will represented by "C-a".
@@ -56,3 +57,12 @@ the same information.
 To reconnect to the first session, include its name after the -r.::
 
   screen -r <sessionname>
+  
+To end (kill) a screen session from *within* the session, type::
+
+  C-a k
+  y
+  
+To terminate a screen session that is running but you have already detatched from, type::
+
+  screen -S <sessionname> -X quit
