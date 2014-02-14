@@ -14,12 +14,14 @@ because...
 The basics
 ----------
 
-...Amazon is happy to rent disk space to you, in addition to compute time.
+... Amazon is happy to rent disk space to you, in addition to compute time.
 They'll rent you disk space in a few different ways, but the way that's
 most useful for us is through what's called Elastic Block Store.  This
-is essentially a hard-disk rental service.
+is essentially a hard-disk rental service. Instructions on how to set this
+up are here: http://ged.msu.edu/angus/tutorials/setting-up-an-ebs-volume.html
+#preferably fanciness akin to :doc:'xx' etc ?
 
-There are two basic concepts -- "volume" and "snapshot". A "volume" can
+There are two basic concepts -- "volume" and "snapshot." A "volume" can
 be thought of as a pluggable-in hard drive: you create an empty volume of
 a given size, attach it to a running instance, and voila! You have extra
 hard disk space.  Volume-based hard disks have two problems, however:
@@ -37,7 +39,7 @@ Getting started
 ---------------
 
 Run through :doc:`../amazon/index` once, to get the hang of
-the mechanics.  Essentially you create a disk; attach it; format it;
+the mechanics.  Essentially you create a disk, attach it, format it,
 and then copy things to and from it.
 
 Downloading and saving your data to a volume
@@ -46,7 +48,7 @@ Downloading and saving your data to a volume
 There are *many* different ways of getting big sequence files to and
 from Amazon.  The two that I mostly use are 'curl', which downloads
 files from a Web site URL; and 'ncftp', which is a robust FTP client
-that let's you get files from an FTP site.  Sequencing centers almost
+that lets you get files from an FTP site.  Sequencing centers almost
 always make their data available in one of these two ways.
 
 .. note::
