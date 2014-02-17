@@ -11,14 +11,8 @@ of the Nematostella data set.
 
 .. note::
 
-   This follows the NGS 2013 tutorial,
-   `Short-read quality evaluation <http://ged.msu.edu/angus/tutorials-2013/short-read-quality-evaluation.html>`__,
-   but for multiple files.
-
-.. note::
-
-   The end results of this tutorial are available as public snapshot
-   snap-8b155fd9 on EC2/EBS.
+   The raw data for this tutorial is available as public snapshot
+   snap-f5a9dea7.
 
 Install software
 ----------------
@@ -28,23 +22,23 @@ Install `screed <http://screed.readthedocs.org/>`__
 .. code-block:: bash
     
    cd /usr/local/share
-   git clone https://github.com/ged-lab/screed.git
+   git clone https://github.com/ged-lab/screed.git -b protocols-v0.8.3
    cd screed
-   git checkout protocols-v0.8.3
    python setup.py install
+   
+Or::
+
+   pip install git+https://github.com/ged-lab/screed.git@protocols-v0.8.3#egg=screed
 
 Install `khmer <http://khmer.readthedocs.org>`__
 
 .. code-block:: bash
    
    cd /usr/local/share
-   git clone https://github.com/ged-lab/khmer.git
+   git clone https://github.com/ged-lab/khmer.git -b protocols-v0.8.5
    cd khmer
-   git checkout protocols-v0.8.3
-   make
-   
-   echo 'export PYTHONPATH=/usr/local/share/khmer/python' >> ~/.bashrc
-   source ~/.bashrc
+   make install
+
 
 Install `Trimmomatic <http://www.usadellab.org/cms/?page=trimmomatic>`__
 
@@ -298,7 +292,7 @@ sequences in there.  Downstream, we will want to pay special attention
 to the remaining paired sequences, so we want to separate out the pe
 and se files.  How do we go about that?  Another script, of course!
 
-The khmer script 'strip-and-split-for-assembly.py' does exactly that.
+The khmer script 'extract-paired-reads.py' does exactly that.
 You run it on an interleaved file that may have some orphans, and it
 produces .pe and .se files afterwards, containing pairs and orphans
 respectively.
@@ -343,7 +337,7 @@ only want the QC files.  So:
    
    rm *.pe.fq.gz *.se.fq.gz
 
-And, finally, you can toss the pe.fq.gz files, because you've turned *those*
+And, finally, you can toss the pe.qc.fq.gz files, because you've turned *those*
 into .pe and .se files.
 
 .. code-block:: bash
@@ -390,7 +384,7 @@ and also some mass combining:
      gunzip -c $otherfile > combine
      cat $i >> combine
      gzip -c combine > $otherfile
-     rm $i
+     rm $i combine
    done
 
 and finally, make the end product files read-only:
