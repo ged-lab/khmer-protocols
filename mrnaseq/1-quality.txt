@@ -117,7 +117,7 @@ your files aren't in /data; another is that they're not named \*.fastq.gz.
    example data, you can work with a subset of it by running this command
    instead of the `ln -fs` command above::
    
-      for i in /data/\*.fastq.gz
+      for i in /data/*.fastq.gz
       do
           gunzip -c $i | head -400000 | gzip > $(basename $i)
       done
@@ -187,7 +187,7 @@ For *each* of these pairs, run the following::
    rm -r trim
    
    # make it hard to delete the files you just created
-   chmod u-w \*.pe.fq.gz \*.se.fq.gz
+   chmod u-w *.pe.fq.gz *.se.fq.gz
 
 To get a basic idea of what's going on, please read the '#' comments
 above, but, briefly, this set of commands:
@@ -298,9 +298,10 @@ produces .pe and .se files afterwards, containing pairs and orphans
 respectively.
 
 To run it on all of the pe qc files, do:
+
 .. code-block:: bash
    
-   for i in \*.pe.qc.fq.gz
+   for i in *.pe.qc.fq.gz
    do
       /usr/local/share/khmer/scripts/extract-paired-reads.py $i
    done
