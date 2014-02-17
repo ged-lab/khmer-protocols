@@ -20,29 +20,32 @@ of the Nematostella data set.
 Install software
 ----------------
 
-.. shell:: start
+Install `screed <http://screed.readthedocs.org/>__
 
-
-Install `screed <http://screed.readthedocs.org/>`__::
-
+.. code-block:: bash
+    
    cd /usr/local/share
    git clone https://github.com/ged-lab/screed.git
    cd screed
    git checkout protocols-v0.8.3
    python setup.py install
 
-Install `khmer <http://khmer.readthedocs.org>`__::
+Install `khmer <http://khmer.readthedocs.org>`__
 
+.. code-block:: bash
+   
    cd /usr/local/share
    git clone https://github.com/ged-lab/khmer.git
    cd khmer
    git checkout protocols-v0.8.3
    make
-
+   
    echo 'export PYTHONPATH=/usr/local/share/khmer/python' >> ~/.bashrc
    source ~/.bashrc
 
-Install `Trimmomatic <http://www.usadellab.org/cms/?page=trimmomatic>`__::
+Install `Trimmomatic <http://www.usadellab.org/cms/?page=trimmomatic>`__
+
+.. code-block:: bash
 
    cd /root
    curl -O http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.30.zip
@@ -51,14 +54,16 @@ Install `Trimmomatic <http://www.usadellab.org/cms/?page=trimmomatic>`__::
    cp trimmomatic-0.30.jar /usr/local/bin
    cp -r adapters /usr/local/share/adapters
 
-Install `libgtextutils and fastx <http://hannonlab.cshl.edu/fastx_toolkit/>`__::
+Install `libgtextutils and fastx <http://hannonlab.cshl.edu/fastx_toolkit/>`__
+
+.. code-block:: bash
 
    cd /root
    curl -O http://hannonlab.cshl.edu/fastx_toolkit/libgtextutils-0.6.1.tar.bz2
    tar xjf libgtextutils-0.6.1.tar.bz2 
    cd libgtextutils-0.6.1/
    ./configure && make && make install
-
+   
    cd /root
    curl -O http://hannonlab.cshl.edu/fastx_toolkit/fastx_toolkit-0.0.13.2.tar.bz2
    tar xjf fastx_toolkit-0.0.13.2.tar.bz2
@@ -69,8 +74,6 @@ In each of these cases, we're downloading the software -- you can use
 google to figure out what each package is and does if we don't discuss
 it below.  We're then unpacking it, sometimes compiling it (which we
 can discuss later), and then installing it for general use.
-
-.. shell:: stop
 
 Find your data
 --------------
@@ -209,12 +212,12 @@ reads, respectively.
 Automating things a bit
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. shell:: start
-
 OK, once you've done this once or twice, it gets kind of tedious, doesn't it?
 I've written a script to write these commands out automatically.  Run it
-like so::
+like so:
 
+.. code-block:: bash
+   
    cd /mnt/work
    python /usr/local/share/khmer/sandbox/write-trimmomatic.py > trim.sh
 
@@ -222,7 +225,9 @@ Run this, and then look at 'trim.sh' using the 'more' command -- ::
 
    more trim.sh
 
-If it looks like it contains the right commands, you can run it by doing::
+If it looks like it contains the right commands, you can run it by doing:
+
+.. code-block:: bash
 
    bash trim.sh
 
@@ -232,8 +237,6 @@ If it looks like it contains the right commands, you can run it by doing::
    and less error prone.  Take a look at this file sometime --
    'more /usr/local/share/khmer/sandbox/write-trimmomatic.py' -- to get
    some idea of how this works.
-
-.. shell:: stop
 
 Quality trim each pair of files
 -------------------------------
@@ -260,10 +263,9 @@ quality score encodings.
 Automating this step
 ~~~~~~~~~~~~~~~~~~~~
 
-.. shell: start
+This step can be automated with a 'for' loop at the shell prompt.  Try:
 
-This step can be automated with a 'for' loop at the shell prompt.  Try::
-
+.. code-block:: bash
    for i in *.pe.fq.gz *.se.fq.gz
    do
         echo working with $i
@@ -297,14 +299,12 @@ You run it on an interleaved file that may have some orphans, and it
 produces .pe and .se files afterwards, containing pairs and orphans
 respectively.
 
-To run it on all of the pe qc files, do::
-
+To run it on all of the pe qc files, do:
+.. code-block:: bash
    for i in *.pe.qc.fq.gz
    do
       /usr/local/share/khmer/scripts/extract-paired-reads.py $i
    done
-
-.. shell:: stop
 
 Finishing up
 ------------
@@ -323,24 +323,24 @@ data, for *each* of the original input files, you'll have::
 
 Yikes!  What to do?
 
-.. shell:: start
 
 Well, first, you can get rid of the original data.  You already have it on a
-disk somewhere, right? ::
+disk somewhere, right?
 
+.. code-block:: bash
    rm *.fastq.gz
 
 Next, you can get rid of the 'pe.fq.gz' and 'se.fq.gz' files, since you
-only want the QC files.  So::
+only want the QC files.  So:
 
+.. code-block:: bash
    rm *.pe.fq.gz *.se.fq.gz
 
 And, finally, you can toss the pe.fq.gz files, because you've turned *those*
-into .pe and .se files. ::
+into .pe and .se files.
 
+.. code-block:: bash
    rm *.pe.qc.fq.gz
-
-.. shell:: stop
 
 So now you should be left with only three files for each sample::
 
@@ -360,11 +360,10 @@ the unwanted ones en masse.  This is a good idea, too.
 Renaming files
 --------------
 
-.. shell:: start
-
 I'm a fan of keeping the files named somewhat sensibly, and keeping them
-compressed.  Let's do some mass renaming::
+compressed.  Let's do some mass renaming:
 
+.. code-block:: bash
    for i in *.pe.qc.fq.gz.pe
    do
       newfile="$(basename $i .pe.qc.fq.gz.pe).pe.qc.fq"
@@ -372,8 +371,9 @@ compressed.  Let's do some mass renaming::
       gzip $newfile
    done
 
-and also some mass combining::
+and also some mass combining:
 
+.. code-block:: bash
    for i in *.pe.qc.fq.gz.se
    do
      otherfile="$(basename $i .pe.qc.fq.gz.se).se.qc.fq.gz"
@@ -383,10 +383,9 @@ and also some mass combining::
      rm $i
    done
 
-.. shell:: stop
+and finally, make the end product files read-only:
 
-and finally, make the end product files read-only::
-
+.. code-block:: bash
    chmod u-w *.qc.fq.gz
 
 to make sure you don't accidentally delete something.
@@ -394,19 +393,15 @@ to make sure you don't accidentally delete something.
 Saving the files
 ----------------
 
-.. shell:: start
-
 At this point, you should save these files, which will be used in two
 ways: first, for assembly; and second, for mapping, to do quantitation
 and ultimately comparative expression analysis.  You can save them by
-doing this::
+doing this:
 
+.. code-block:: bash
    mkdir save
    mv *.qc.fq.gz save
    du -sk save
-
-.. shell:: stop
-
 
 This puts the data you want to save into a subdirectory named 'save', and
 calculates the size.
@@ -415,8 +410,9 @@ Now, create a volume of the given size -- divide by a thousand to get
 gigabytes, multiply by 1.1 to make sure you have enough room, and then
 follow the instructions in :doc:`../amazon/index`.  Once
 you've mounted it properly (I would suggest mounting it on /save
-instead of /data!), then do ::
+instead of /data!), then do :
 
+.. code-block:: bash
    rsync -av save /save
 
 which will copy all of the files over from the ./save directory onto the
