@@ -32,9 +32,7 @@ everything is up to date::
 Next we need to make sure we have installed all packages commonly used in our
 programs::
 
-		apt-get -y install mercurial less python-matplotlib unzip bzip2 \
-			zlib1g-dev ncurses-dev python-dev g++ screen pkg-config python-pip \
-			curl git sysstat libgtextutils-dev make openjdk-7-jre-headless
+		apt-get -y install mercurial less python-matplotlib unzip bzip2 zlib1g-dev ncurses-dev python-dev g++ screen pkg-config python-pip curl git sysstat libgtextutils-dev make openjdk-7-jre-headless
 
 The next few steps go through the process of installing software our lab uses
 regularly.
