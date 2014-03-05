@@ -61,9 +61,9 @@ like::
    cd /mnt
    ncftp -u <username> ftp://path/to/FTP/site
 
-use 'cd' to find the right directory, and then::
+use 'ls' to find the right directory, and then::
 
-   >> mget *
+   >> get -R <directory>
 
 to download the files.  Then type 'quit'.  
 
