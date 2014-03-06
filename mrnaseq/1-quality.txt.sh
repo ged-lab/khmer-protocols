@@ -26,33 +26,32 @@
    ln -fs /data/*.fastq.gz .
    cd /mnt/work
    python /usr/local/share/khmer/sandbox/write-trimmomatic.py > trim.sh
-   more trim.sh
    bash trim.sh
-   for i in *.pe.fq.gz *.se.fq.gz
+   for file in *.pe.fq.gz *.se.fq.gz
    do
-      echo working with $i
-   newfile="$(basename $i .fq.gz)"
-   gunzip -c $i | fastq_quality_filter -Q33 -q 30 -p 50 | gzip -9c > "${newfile}.qc.fq.gz"
+      echo working with $file
+   newfile="$(basename $file .fq.gz)"
+   gunzip -c $file | fastq_quality_filter -Q33 -q 30 -p 50 | gzip -9c > "${newfile}.qc.fq.gz"
    done
-   for i in *.pe.qc.fq.gz
+   for file in *.pe.qc.fq.gz
    do
-      /usr/local/share/khmer/scripts/extract-paired-reads.py $i
+      /usr/local/share/khmer/scripts/extract-paired-reads.py $file
    done
    rm *.fastq.gz
    rm *.pe.fq.gz *.se.fq.gz
    rm *.pe.qc.fq.gz
-   for i in *.pe.qc.fq.gz.pe
+   for file in *.pe.qc.fq.gz.pe
    do
-      newfile="$(basename $i .pe.qc.fq.gz.pe).pe.qc.fq"
-      mv $i $newfile
+      newfile="$(basename $file .pe.qc.fq.gz.pe).pe.qc.fq"
+      mv $file $newfile
       gzip $newfile
    done
-   for i in *.pe.qc.fq.gz.se
+   for file in *.pe.qc.fq.gz.se
    do
-     otherfile="$(basename $i .pe.qc.fq.gz.se).se.qc.fq.gz"
+     otherfile="$(basename $file .pe.qc.fq.gz.se).se.qc.fq.gz"
      gunzip -c $otherfile > combine
-     cat $i >> combine
+     cat $file >> combine
      gzip -c combine > $otherfile
-     rm $i combine
+     rm $file combine
    done
    chmod u-w *.qc.fq.gz
