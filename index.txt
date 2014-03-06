@@ -29,9 +29,6 @@ Helpful instructions:
 * :doc:`amazon/index` -- information on Amazon instances
 * :doc:`../docs/command-line` -- command-line conventions for the khmer protocols
 
-.. toctree::
-   :maxdepth: 3
-
 Protocols:
 ----------
 
@@ -77,7 +74,7 @@ Institute of the National Institutes of Health under Award Number
 `R01HG007513 <http://ged.msu.edu/downloads/2012-bigdata-nsf.pdf>`__,
 also to C. Titus Brown.
 
-C. Titus Brown's work on the Eel Pond mRNAseq tutorial was enabled by his 2013 summer
+CTB's work on the Eel Pond mRNAseq tutorial was enabled by his 2013 summer
 research work at `the Marine Biological Laboratory
 <http://www.mbl.edu>`__, funded by the Burr and Susie Steinbach Award
 and the Laura and Arthur Colwin Endowed Summer Research Fellowship

@@ -2,14 +2,14 @@
 1. Quality Trimming and Filtering Your Sequences
 ================================================
 .. shell:: start
-Boot up an m1.xlarge machine from Amazon Web Services; this has 
-15 GB of RAM, and 2 CPUs, and will be enough to complete the entire protocol
-using the Nematostella data set.   
+Boot up an m1.xlarge machine from Amazon Web Services; this has about
+15 GB of RAM, and 2 CPUs, and will be enough to complete the assembly
+of the Nematostella data set.
 
-The raw data used in this tutorial is available as public snapshot snap-c331d405. 
+.. note::
 
-.. note:
-   Several datasets are available to test your skills with. For a complete list see :doc:`../docs/snapshots.txt`.
+   The raw data for this tutorial is available as public snapshot
+   snap-f5a9dea7.
 
 Install software
 ----------------
@@ -93,11 +93,26 @@ find them but doesn't need to actually move them around. :
    
    ln -fs /data/*.fastq.gz .
 
-(The 'ln' command does the linking.)
+(The 'ln' command is what does the linking.)
 
 Now, do an 'ls' to list the files.  If you see only one entry, ``*.fastq.gz``,
 then the ln command above didn't work properly.  One possibility is that
 your files aren't in /data; another is that they're not named *.fastq.gz.
+
+.. note::
+
+   This protocol takes many hours (days!) to run, so you might not want
+   to run it on all the data the first time.  If you're using the
+   example data, you can work with a subset of it by running this command
+   instead of the `ln -fs` command above::
+
+      for i in /data/*.fastq.gz
+      do
+          gunzip -c $i | head -400000 | gzip > $(basename $i)
+      done
+
+   This will pull out the first 100,000 reads of each file (4 lines per record)
+   and put them in the current directory, which should be /mnt/work.
 
 Find the right Illumina adapters
 --------------------------------
@@ -131,11 +146,15 @@ bunch of files that look like this (use 'ls' to show them)::
                        ^^
 
 Each file with an R1 in its name should have a matching file with an R2 --
-these are the paired ends... You'll need to replace <R1 FILE> and <R2 FILE>,
-below, with the names of your actual R1 and R2 files.  You'll also need to
-replace <SAMPLE NAME> with something that's unique to each pair of files. It
-doesn't really matter what, but you need to make sure it's different for each
-pair.
+these are the paired ends.
+
+.. note::
+
+   You'll need to replace <R1 FILE> and <R2 FILE>, below, with the
+   names of your actual R1 and R2 files.  You'll also need to replace
+   <SAMPLE NAME> with something that's unique to each pair of files.
+   It doesn't really matter what, but you need to make sure it's different
+   for each pair of files.
 
 For *each* of these pairs, run the following::
 
@@ -233,11 +252,11 @@ Automating this step
 This step can be automated with a 'for' loop at the shell prompt.  Try :
 ::
 
-   for file in *.pe.fq.gz *.se.fq.gz
+   for i in *.pe.fq.gz *.se.fq.gz
    do
-      echo working with $file
-   newfile="$(basename $file .fq.gz)"
-   gunzip -c $file | fastq_quality_filter -Q33 -q 30 -p 50 | gzip -9c > "${newfile}.qc.fq.gz"
+      echo working with $i
+   newfile="$(basename $i .fq.gz)"
+   gunzip -c $i | fastq_quality_filter -Q33 -q 30 -p 50 | gzip -9c > "${newfile}.qc.fq.gz"
    done
 
 What this loop does is:
@@ -269,9 +288,9 @@ respectively.
 To run it on all of the pe qc files, do :
 ::
 
-   for file in *.pe.qc.fq.gz
+   for i in *.pe.qc.fq.gz
    do
-      /usr/local/share/khmer/scripts/extract-paired-reads.py $file
+      /usr/local/share/khmer/scripts/extract-paired-reads.py $i
    done
 
 
@@ -332,23 +351,23 @@ I'm a fan of keeping the files named somewhat sensibly, and keeping them
 compressed.  Let's do some mass renaming :
 ::
 
-   for file in *.pe.qc.fq.gz.pe
+   for i in *.pe.qc.fq.gz.pe
    do
-      newfile="$(basename $file .pe.qc.fq.gz.pe).pe.qc.fq"
-      mv $file $newfile
+      newfile="$(basename $i .pe.qc.fq.gz.pe).pe.qc.fq"
+      mv $i $newfile
       gzip $newfile
    done
 
 and also some mass combining :
 ::
 
-   for file in *.pe.qc.fq.gz.se
+   for i in *.pe.qc.fq.gz.se
    do
-     otherfile="$(basename $file .pe.qc.fq.gz.se).se.qc.fq.gz"
+     otherfile="$(basename $i .pe.qc.fq.gz.se).se.qc.fq.gz"
      gunzip -c $otherfile > combine
-     cat $file >> combine
+     cat $i >> combine
      gzip -c combine > $otherfile
-     rm $file combine
+     rm $i combine
    done
 
 
@@ -367,16 +386,16 @@ ways: first, for assembly; and second, for mapping, to do quantitation
 and ultimately comparative expression analysis.  You can save them by
 doing this::
 
-   mkdir /save
-   mv *.qc.fq.gz /save
-   du -sh /save
+   mkdir save
+   mv *.qc.fq.gz save
+   du -sk save
 
 .. shell:: stop
 
 This puts the data you want to save into a subdirectory named 'save', and
-outputs its size (in MB).
+calculates the size.
 
-Now, create a volume of the given size -- divide by a hundred to get
+Now, create a volume of the given size -- divide by a thousand to get
 gigabytes, multiply by 1.1 to make sure you have enough room, and then
 follow the instructions in :doc:`../amazon/index`.  Once
 you've mounted it properly (I would suggest mounting it on /save
@@ -385,8 +404,7 @@ instead of /data!), then do ::
    rsync -av save /save
 
 which will copy all of the files over from the ./save directory onto the
-'/save' disk.  Then 'umount /save' and detach the volume in your EC2 Management
-Console. Voila, you've got a copy of the files safe in the cloud!
+'/save' disk.  Then 'umount /save' and voila, you've got a copy of the files!
 
 Next stop: :doc:`2-diginorm`.
 

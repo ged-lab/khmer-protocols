@@ -69,28 +69,28 @@ You'll have a bunch of 'keep.abundfilt' files -- let's make things prettier.
 First, let's break out the orphaned and still-paired reads:
 ::
 
-   for file in *.pe.*.abundfilt;
+   for i in *.pe.*.abundfilt;
    do 
-      /usr/local/share/khmer/scripts/extract-paired-reads.py $file
+      /usr/local/share/khmer/scripts/extract-paired-reads.py $i
    done
 
 We can combine the orphaned reads into a single file:
 ::
 
-   for file in *.se.qc.fq.gz.keep.abundfilt
+   for i in *.se.qc.fq.gz.keep.abundfilt
    do
-      pe_orphans=$(basename $file .se.qc.fq.gz.keep.abundfilt).pe.qc.fq.gz.keep.abundfilt.se
-      newfile=$(basename $file .se.qc.fq.gz.keep.abundfilt).se.qc.keep.abundfilt.fq.gz
-      cat $file $pe_orphans | gzip -c > $newfile
+      pe_orphans=$(basename $i .se.qc.fq.gz.keep.abundfilt).pe.qc.fq.gz.keep.abundfilt.se
+      newfile=$(basename $i .se.qc.fq.gz.keep.abundfilt).se.qc.keep.abundfilt.fq.gz
+      cat $i $pe_orphans | gzip -c > $newfile
    done
 
 We can also rename the remaining PE reads & compress those files:
 ::
 
-   for file in *.abundfilt.pe
+   for i in *.abundfilt.pe
    do
-      newfile=$(basename $file .fq.gz.keep.abundfilt.pe).keep.abundfilt.fq
-      mv $file $newfile
+      newfile=$(basename $i .fq.gz.keep.abundfilt.pe).keep.abundfilt.fq
+      mv $i $newfile
       gzip $newfile
    done
 
