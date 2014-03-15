@@ -27,7 +27,7 @@ the Debian Linux package installer, 'apt-get'::
 
    apt-get update
    apt-get -y install bioperl ncbi-blast+
-
+   apt-get install libxml-simple-perl
 Now download and unpack Prokka::
 
    cd /mnt
