@@ -96,31 +96,22 @@ that is, diginormed.  That makes it hard to use them for abundance
 calculations, and some assemblers prefer to have the original
 abundances in there.
 
-So, can you recover the abundances?  Of course you can!  However, you
-do have to combine all of the raw (unpartitioned) reads into a single
-file, because the script to reinflate the partitions takes only a single
-file.  Sorry :(. ::
+So, can you recover the abundances?  Of course you can!::
 
-   gunzip -c SRR49206?.?e.qc.fq.gz > all.fq
+   sweep-reads-buffered.py --min-tablesize 3e8 --label-by-group 100000 --prefix kak kak.group*.fq SRR606249.?e.qc.fq.gz
 
-Now, run the command to pull all of the reads for each group from 'all.fq'
-into reinflated files::
+Finally, split the resulting ``kak_base*.fa`` files into PE/SE::
 
-   python /usr/local/share/khmer/sandbox/sweep-reads3.py -x 3e8 kak.group*.fq all.fq
-
-Finally, split the resulting ``.sweep3`` files into PE/SE::
-
-   for i in kak*.sweep3
+   for file in kak_base_[0-9]*.fa
    do
-      /usr/local/share/khmer/scripts/extract-paired-reads.py $i
-      name=$(basename $i .fq.sweep3)
-      mv $i.pe ${name}.nodn.pe.fq
-      mv $i.se ${name}.nodn.se.fq
+      extract-paired-reads.py ${file}
+      mv ${file}.pe ${file%%.fa.pe}.nodn.pe.fa
+      mv ${file}.se ${file%%.fa.se}.nodn.se.fa
    done
 
 and compress::
 
-   gzip *.nodn.se.fq *.nodn.pe.fq
+   gzip *.nodn.se.fa *.nodn.pe.fa
 
 Cleaning up
 ===========
@@ -138,7 +129,7 @@ which can be removed::
 You'll be left with 18 pairs of files named ``kak.group00XX.pe.fq.gz``
 and ``kak.group00xx.se.fq.gz``, and (if you reinflated the
 partitions), another 18 pairs of files named
-``kak.group0000.nodn.pe.fq.gz`` and ``kak.group0000.nodn.se.fq.gz``.
+``kak_base_0.nodn.pe.fa.gz`` and ``kak_base_0.nodn.se.fa.gz``.
 
 ----
 
