@@ -1,16 +1,14 @@
-2014 / December / mRNAseq on model organisms
-============================================
+Reference based RNAseq assembly in model organisms
+==================================================
 
-This workshop was given on December 4th and 5th, 2014, by
-C. Titus Brown and Matt Scholz.
-
-.. figure:: _static/model-rnaseq-pipeline.png
+.. figure:: files/model-rnaseq-pipeline.png
 
 Tutorials:
 
 .. toctree::
    :maxdepth: 2
 
+   m-dataNsoftware_HPC
    m-quality
    m-tophat
    m-htseq
@@ -18,4 +16,4 @@ Tutorials:
    m-data-analysis
    m-hpc-qsub
    m-advice
-   more-resources
+..   more-resources
