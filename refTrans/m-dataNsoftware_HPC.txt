@@ -1,10 +1,10 @@
-Get an example data and install/load software on HPC
+Get example data and install/load software on HPC
 ====================================================
 
 .. shell start
 
-1. Log into HPC
----------------
+Log into HPC
+------------
 
 Log into the HPC with SSH:: 
 
@@ -23,8 +23,8 @@ Assing the path of your working directory to a ageneric variable::
 .. ::
    workingPath=$"/mnt/ls12/Tamer/refTransProject/"
 
-2. Getting the data
--------------------
+Getting the data
+----------------
 
 We'll be using a few RNAseq data sets from Fagerberg et al., `Analysis
 of the Human Tissue-specific Expression by Genome-wide Integration of
@@ -86,8 +86,8 @@ which tells you that this file is about 900 MB. You can go a head and use these 
 for the reset of the protocl. But for the sake of time (& memory), we will run our demo 
 on a subset of this dat  
 
-3. Copying in some data to work with.
--------------------------------------
+Copying in some data to work with
+---------------------------------
 
 .. check if the subset data directory exists
 .. ::
@@ -120,15 +120,15 @@ and do the same for the lung samples
 
    fi
 
-4. Link your data into a working directory
-------------------------------------------
+Link your data into a working directory
+---------------------------------------
 Rather than copying the files into the working directory, let’s just link them in. 
 this creates a reference so that UNIX knows where to find them but doesn’t need to actually move them around.
 ::
    ln -fs $workingPath/refTransData/dataSubset/*.fq.gz $workingPath
 
-4. install/load software
-------------------------
+install/load software
+---------------------
 Most of softwares used through this protocol require to be installed on the root dircteory of HPC. 
 This action requires adminstrative privilages. The IT supervisors of the HPC install software packages 
 in the form modules that you can simply load by the command: module load <software>
@@ -138,9 +138,14 @@ Now let us load all the modules reuired to go through this protocol
 
    module load FastQC/0.11.2
    module load Trimmomatic/0.32
+   module load TopHat2/2.0.12
 
+.. note:: Loading TopHat2 include loading Bowtie/2.2.3.0 and Samtools/0.1.19.0
+   
 We will elaborate more on each software when we use it
 
 .. shell stop
+
+----
 
 Next: :doc:`m-quality`

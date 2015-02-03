@@ -3,8 +3,8 @@ Short read quality and trimming
 
 .. shell start
 
-1. FastQC
----------
+Assessment of sequence quality (FastQC)
+---------------------------------------
 
 We're going to use `FastQC <http://www.bioinformatics.babraham.ac.uk/projects/fastqc/>`__ to summarize the data. 
 FastQC cans on Fastq files as well as GZip compressed Fastq (.gz) files. The program operates on one file at a time
@@ -21,8 +21,7 @@ files have been processed. If your files are big in size, it might be more wise
 to run then in parallel.
 
 
-Now type 'ls' in the output directory to explore the result files
-::
+Now type 'ls' in the output directory to explore the result files::
 
    ls ./rawData_fastqc
 
@@ -32,9 +31,9 @@ and you will see ::
    salivary_repl1_R1_fastqc.zip
    ...
 
-Copy these to your laptop and open them in a browser::
+In the root of your terminal, you can copy these files to your laptop and open them in a browser::
 
-   scp <username@hpc.msu.edu>:<workingPath>/rawData_fastqc/salivary*fastqc .
+   scp <username@hpc.msu.edu>:<workingPath>/rawData_fastqc/salivary*fastqc.* /tmp
 
 and then open the html files in your browser.
 
@@ -42,8 +41,8 @@ Links:
 
 * `FastQC tutorial video <http://www.youtube.com/watch?v=bz93ReOv87Y>`__
 
-2. Trimmomatic
---------------
+Trimmomatic
+-----------
 
 Now we're going to do some trimming to remove any leftover adaptor sequences and low quality trailing edges. 
 We'll be using `Trimmomatic <http://www.usadellab.org/cms/?page=trimmomatic>`__.
@@ -70,7 +69,26 @@ To run Trimmomatic
     # my  parameters: ILLUMINACLIP:$TRIM/adapters/TruSeq3-PE.fa:2:30:10:1 SLIDINGWINDOW:4:15
    done
 
-You can check the log file to see how much the trimming affected the data
+Now type 'ls' in the output directory to explore the result files::
+
+   ls *.fq.gz
+
+and you will see ::
+
+   salivary_repl1_R1.fq.gz
+   salivary_repl1_R1.pe.fq.gz
+   salivary_repl1_R1.se.fq.gz
+   salivary_repl1_R2.fq.gz
+   salivary_repl1_R2.pe.fq.gz
+   salivary_repl1_R2.se.fq.gz
+   ...
+
+Trimming of paired end reads in four output files for each pair input files.
+The two output files labeled with (.pe) represnt the reads that are still in the pair end format. 
+The other two files labled with (.se) represent the unpaired reads remaining from one input file 
+after dropping the corresponding read from the second input file. 
+
+You can check the log file to see how much the trimming affected the data.
 
 For better understanding of the Trimmomatic parameters, you need to check 
 `Trimmomatic web page <http://www.usadellab.org/cms/?page=trimmomatic>`__ . 
@@ -79,8 +97,8 @@ You might need to teak these parameters for you own data
 .. * Are parameters different for RNAseq and genomic?
 .. * What do we do with the single-ended files (s1_se and s2_se?)
 
-3. FastQC again
----------------
+FastQC again
+------------
 
 Run FastQC again
 ::
@@ -91,5 +109,7 @@ Run FastQC again
 .. * Does it matter that you still have adapters!?
 
 .. shell stop
+
+----
 
 Next: :doc:`m-tophat`

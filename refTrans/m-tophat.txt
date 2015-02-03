@@ -1,65 +1,141 @@
 Mapping reads to the transcriptome with TopHat
 ==============================================
 
+.. shell start
+
 Now that we have some quality-controlled reads, we're going to *map* the
 reads to the reference gene set, for the purpose of counting how many
 reads have come from each gene.  We'll be using the `TopHat software
 <http://ccb.jhu.edu/software/tophat/manual.shtml>`__
 
-For this purpose, we've already installed the human reference gene set
-on the HPC (as part of the data you loaded at the beginning).  In this
-case we've loaded in the `Illumina iGenomes project
-<http://cufflinks.cbcb.umd.edu/igenomes.html>`__ into the RNAseq-model
-data set.
+Download the Bowtie2 index
+-------------------------- 
+
+TopHat is built on the short read mapping program `Bowtie 
+<http://bowtie-bio.sourceforge.net/index.shtml>`__. Bowtie indexes the genome 
+with a Burrows-Wheeler index to keep its memory footprint small. 
+We can build those indexes for our genome using `bowtie2-build 
+<http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml#the-bowtie2-build-indexer>`__.
+However for most if not all model organisms, you can download the Bowtie index for 
+a given genome assembly. 
+
+The `Illumina iGenomes project <http://cufflinks.cbcb.umd.edu/igenomes.html>`__ 
+provided the RNA-Seq user community with a set of genome sequence indexes (including Bowtie indexes).  
+
+We will download the iGenome index for the UCSC hg19 assembly version and 
+define the path of the genome and genome_index_base which the name of any 
+of the index files up to but not including the first period.
+
+.. check if the data directory exists
+.. ::
+
+   if [ ! -d "$workingPath/Homo_sapiens" ]; then
+
+::
+
+        wget ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/Homo_sapiens/UCSC/hg19/Homo_sapiens_UCSC_hg19.tar.gz
+        tar -zxvf Homo_sapiens_UCSC_hg19.tar.gz
+        homo_sapiens_genome="$workingPath/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa"
+        Bowtie2Index="$workingPath/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome"
+
+.. ::
+
+   fi
+
+Making use of gene model annotations
+------------------------------------
+Model organisms usually have a good annotation of their transcriptome. Annotation 
+information is typically shared in GTF files. Illumina iGenomes indexes come 
+with GTF transcript annotation files (Congratualtion, this means you have downloaded them already)
+Let us define the path of the required GTF in the downloaded iGenome package
+::
+   GTF_file="$workingPath/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf" 
+
+We can pass the annotation file to TopHat through the optional argument (--GTF). 
+TopHat will first extract the transcript sequences and use Bowtie to align reads to this virtual transcriptome first. 
+Only the reads that do not fully map to the transcriptome will then be mapped on the genome.
+
+For TopHat to make use of GTF file, it has to create a Bowtie index for the transcriptome 
+sequences which could be time consuming. If you are aligning multiple samples with TopHat, 
+we can create these indexes once and reused for multiple and even *simultaneous* TopHat runs.
+To create the transcriptome-index, we can inovke TopHat without input reads
+::
+
+   tophat \
+       --num-threads 4 \
+       --GTF "$GTF_file" \
+       --transcriptome-index "$workingPath/trans_Index/transcriptome" \
+       $Bowtie2Index
+
+   
+Prepare the input reads
+-----------------------
+You can pass these two PE files directly to the TopHat to do the pair end orinted alignment. 
+TopHat allows the use of additional unpaired reads but it has to pass as single file. 
+So we need to merge every two SE files belonging to the same sample
+::
+
+   for f in *R1.se*; do
+        input_R1="$f"
+        input_R2=$(echo "$f" | sed s/R1/R2/)				                
+        output=$(echo "$f" | sed s/R1/R/)
+        printf $input_R1" "$input_R2" "$output"\n"
+        cat $input_R1 $input_R2 > $output
+   done
 
 Mapping reads
 -------------
 
-Load the TopHat software::
+And now run TopHat on one sample::
 
-   module load TopHat2/2.0.12
+   tophat \
+       --num-threads 4 \
+       --GTF "$GTF_file" \
+       --transcriptome-index "$workingPath/trans_Index/transcriptome" \
+       --output-dir salivary_repl1 \
+       $Bowtie2Index \
+       salivary_repl1_R1.pe.fq.gz salivary_repl1_R2.pe.fq.gz,salivary_repl1_R.se.fq.gz 
 
-And now run TopHat::
+This will take about ~10-15 minutes. We can run all the samples sequencially using a for loop
+::
 
-   cd ~/rnaseq
-   tophat -p 4 \
-       -G ~/RNAseq-model/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf \
-       --transcriptome-index=$HOME/RNAseq-model/transcriptome \
-       -o tophat_salivary_repl1 \
-       ~/RNAseq-model/Homo_sapiens/Ensembl/GRCh37/Sequence/Bowtie2Index/genome \
-       salivary_repl1_R1.qc.fq.gz salivary_repl1_R2.qc.fq.gz 
+   for f in *R1.pe*; do
+        input_R1="$f"
+        input_R2=$(echo "$f" | sed s/R1/R2/)
+        input_R=$(echo "$f" | sed s/R1.pe/R.se/)
+        output=$(basename "$f" | cut -f 1 -d "_")
+        printf $input_R1"\n"$input_R2"\n"$input_R"\n"$output"\n"
+        tophat \
+            --num-threads 4 \
+            --GTF "$GTF_file" \
+            --transcriptome-index "$workingPath/trans_Index/transcriptome" \
+            --output-dir $output \
+            $Bowtie2Index \
+            $input_R1 $input_R2,$input_R 
+   done
 
-This will take about 15 minutes.
-
-Questions:
-
-* What are all these parameters?!
-* How do we pick the transcriptome/genome?
-* Why is it so slow?
-* What is different about mapping RNAseq reads vs mapping genomic reads.
-
-Links:
-
-* `TopHat manual <http://ccb.jhu.edu/software/tophat/manual.shtml>`__
-* `Illumina iGenomes project <http://cufflinks.cbcb.umd.edu/igenomes.html>`__
 
 Counting mapped reads percentage
 --------------------------------
 
 Let's ask samtools for the total number of reads that mapped::
 
-    samtools view -c -F 4 tophat_salivary_repl1/accepted_hits.bam
+   samtools view -c -F 4 salivary_repl1/accepted_hits.bam
 
-You should get around 179,312.  
+You should get around 186,256.  
 
-If we look at the `FastQC report
-<http://2014-msu-rnaseq.readthedocs.org/en/latest/_static/salivary_repl1_R1.qc_fastqc.html>`__,
-we can see (at the top) that the total number of reads in the R1 file
-is 95,236 (which is the same number of reads as in the R2 file, because
-we only looked at the paired reads that came out of Trimmomatic).
+We can count the reads in our input files::
+   
+   R1_pe="$(zcat salivary_repl1_R1.pe.fq.gz | echo $((`wc -l`/4)))"
+   R2_pe="$(zcat salivary_repl1_R2.pe.fq.gz | echo $((`wc -l`/4)))"
+   R_se="$(zcat salivary_repl1_R.se.fq.gz | echo $((`wc -l`/4)))"
+   echo $((R1_pe + R2_pe + R_se))
 
-In total, that's 190,472 reads in your trimmed (QC) data, and 179,312
-mapped -- about 94%.  That's pretty good!
+You should get around 189,150
+
+So you have 186,256 mapped reads out of 189,150 -- about 98%.  That's pretty good!
+
+.. shell stop
 
 ----
 
