@@ -103,7 +103,7 @@ This will take about ~10-15 minutes. We can run all the samples sequencially usi
         input_R1="$f"
         input_R2=$(echo "$f" | sed s/R1/R2/)
         input_R=$(echo "$f" | sed s/R1.pe/R.se/)
-        output=$(basename "$f" | cut -f 1 -d "_")
+        output=$(basename "$f" | cut -f 1,2 -d "_")
         printf $input_R1"\n"$input_R2"\n"$input_R"\n"$output"\n"
         tophat \
             --num-threads 4 \
@@ -113,6 +113,11 @@ This will take about ~10-15 minutes. We can run all the samples sequencially usi
             $Bowtie2Index \
             $input_R1 $input_R2,$input_R 
    done
+
+With large input files, TopHat will take hours and may be days. It will be more 
+efficient to run TopHat on all samples in parallel jobs
+
+:doc:`./para_HPC
 
 
 Counting mapped reads percentage
