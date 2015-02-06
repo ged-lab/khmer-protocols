@@ -1,0 +1,63 @@
+edgeR_difExp.R
+==============
+You can copy the script from here and save it in the working directory under the name edgeR_difExp.R::
+
+   # First, combine all the count files into one dataset
+   # and create a list of group labels where all the replicates from the same group have the same label
+   First_sample <- TRUE
+   columnID <- 2
+   group <- c()
+   for (tophat_folder in dir(pattern="*_tophat")){
+       file.name <- paste(tophat_folder, "/total_count.txt", sep="")
+       sample.name <- sub("_tophat","",tophat_folder)
+       if (First_sample){
+           all.data <- read.delim(file.name, col.names=c("gene", sample.name), sep="\t", colClasses=c("character", "numeric"), row.names=1)
+           First_sample <- FALSE
+       } else {
+           temp <- read.delim(file.name, col.names=c("gene", sample.name), sep="\t", colClasses=c("character", "numeric"), row.names=1)
+           #all.data$sample.name <- temp$sample.name
+           all.data[,columnID] <- temp[,1]
+           colnames(all.data)[columnID] = sample.name
+           columnID = columnID + 1
+       }
+       group_label <- sub("_repl[1-2]","", sample.name)
+       group <- c(group,group_label)
+   }
+
+   # eliminate the last five rows
+   all.data <- all.data[1:(nrow(all.data)-5),]
+   
+   # We now have a data frame with all the data in it!
+   head(all.data)
+
+   ###
+   
+   # now, do differential expression w/edgeR
+   library("edgeR")
+
+   # calculate differential expression and dispersion
+   dge = DGEList(counts=all.data, group=group)
+   dge <- estimateCommonDisp(dge)
+   dge <- estimateTagwiseDisp(dge)
+
+   # plot!
+   et <- exactTest(dge)
+   etp <- topTags(et, n=100000)
+
+   summary(etp$table)
+
+   etp$table$logFC = -etp$table$logFC
+   pdf("edgeR-MA-plot.pdf")
+   plot(
+     etp$table$logCPM,
+     etp$table$logFC,
+     xlim=c(-3, 20), ylim=c(-12, 12), pch=20, cex=.3,
+     col = ifelse( etp$table$FDR < .1, "red", "black" ) )
+   dev.off()
+
+   # output CSV
+   write.csv(etp$table, "edgeR-lung-vs-salivary.csv")
+
+----
+
+Back: :doc:`m-data-analysis`

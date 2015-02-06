@@ -1,0 +1,80 @@
+Counting the reads that map to each transcript
+==============================================
+
+.. shell start
+
+Now that we know which reads go with which gene, we'll use
+`Cufflinks <http://cole-trapnell-lab.github.io/cufflinks/>`__ to allocate those reads
+to the possible transcripts of every gene
+
+.. note:: This section reuires cufflinks/2.1.1 installed
+
+You can ask Cufflinks to use only annotated transcripts by the argument (--GTF). 
+However there is another argument (--GTF-guide) which Tells Cufflinks to use the 
+supplied reference annotation to guide reference annotation based transcript assembly.
+Output will include all reference transcripts as well as any novel genes and isoforms that are assembled.
+
+As we discussed before, Cufflinks uses the ambiguously aligned reads in its calculation.
+To do this in a more conservative approach, there are several arguments that you can pass to Cufflinks:
+1. --multi-read-correct                 Tells Cufflinks to do an initial estimation procedure to more accurately weight reads mapping to multiple locations in the genome
+2. --frag-bias-correct <genome.fa>      Providing Cufflinks with a genome reference to run a bias detection and correction algorithm which improve accuracy of transcript abundance estimates. 
+
+::
+
+   for f in *_tophat; do
+        cufflinks \
+            --GTF-guide "$GTF_file" \
+            --multi-read-correct \
+            --frag-bias-correct ${homo_sapiens_genome} \
+            --num-threads 4 \
+            --output-dir $f/cufflink_out \
+            $f/accepted_hits.bam
+   done
+
+Out folder will have four files::
+
+   transcripts.gtf        : This GTF file contains Cufflinks’ assembled isoforms.
+   isoforms.fpkm_tracking : This file contains the estimated isoform-level expression values  
+   genes.fpkm_tracking    : This file contains the estimated gene-level expression values        
+   skipped.gtf            : List of skipped loci. Cufflinks skip a locus if more than 1000000 fragment
+                            mapped to it. You can change this through the (–max-bundle-frags)  
+
+Note, Cufflinks express the expression values in **FPKM** (Fragments per kilobase of exon per million reads mapped). 
+This unit corrects for the gene size and the depth of sequencing. So let us say that the expression of a given gene was 100, 
+this means that for every one million fragments(read if single ended or pair if paired ended) 
+mapping to the whole transcriptome, 100 fragments of this million will map to one kilobase of this transcript.
+
+----
+
+Because we have multiple RNA-Seq libraries, It is recommend that you merge these assemblies into a master transcriptome. 
+This step is required for a differential expression analysis of the new transcripts we’ve assembled. 
+`Cuffmerge <http://cole-trapnell-lab.github.io/cufflinks/cuffmerge/index.html>`__ performs this merge step.
+
+First step is to specify all the input GTF files in a **manifest** file listing full paths to the files.
+::
+
+   for f in *_tophat; do
+        echo $workingPath/$f/cufflink_out/transcripts.gtf >> assembly_GTF_list.txt
+   done
+
+Now we can run the cuffmerge software
+::
+
+   cuffmerge \
+        --ref-sequence ${homo_sapiens_genome} \
+        --ref-gtf $GTF_file \
+        --num-threads 4 \
+        assembly_GTF_list.txt
+
+The cuffmerge will output a folder called "merged_asm" which contain "merged.gtf" file 
+containing all the transcripts that cufflinks had assembled. Cuffmrege has an optional argument
+(--ref-gtf) which allow you to pass the reference annotation. Therefore, the merged.gtf has cufflinks
+transcripts with their matching reference transcripts.
+
+
+.. shell stop
+
+----
+
+Next: :doc:`m-Cuffdif`
+

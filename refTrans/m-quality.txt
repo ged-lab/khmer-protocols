@@ -7,7 +7,9 @@ Assessment of sequence quality (FastQC)
 ---------------------------------------
 
 We're going to use `FastQC <http://www.bioinformatics.babraham.ac.uk/projects/fastqc/>`__ to summarize the data. 
-FastQC cans on Fastq files as well as GZip compressed Fastq (.gz) files. The program operates on one file at a time
+FastQC operates on Fastq files as well as GZip compressed Fastq (.gz) files.
+
+.. note:: This section reuires FastQC/0.11.2 installed
 
 Now run FastQC on your sequencing file
 ::
@@ -15,10 +17,7 @@ Now run FastQC on your sequencing file
    mkdir rawData_fastqc
    fastqc *.fq.gz --outdir=./rawData_fastqc
 
-.. note:: When you pass multiple files to FastQC, it operates a queueing system 
-where only one file is opened at a time, and rest of the files will wait until existing 
-files have been processed. If your files are big in size, it might be more wise 
-to run then in parallel.
+.. .. note:: When you pass multiple files to FastQC, it operates one file at a time give it a seprate output.
 
 
 Now type 'ls' in the output directory to explore the result files::
@@ -49,6 +48,8 @@ We'll be using `Trimmomatic <http://www.usadellab.org/cms/?page=trimmomatic>`__.
 For a discussion of optimal RNAseq trimming strategies, see `MacManes, 2014 
 <http://journal.frontiersin.org/Journal/10.3389/fgene.2014.00013/abstract>`__.
 
+.. note:: This section reuires Trimmomatic/0.32 installed
+
 To run Trimmomatic
 ::
 
@@ -65,9 +66,11 @@ To run Trimmomatic
     LEADING:2 TRAILING:2 \
     SLIDINGWINDOW:4:15 \
     MINLEN:25 &>> log.txt
-    # Titus workshop: ILLUMINACLIP:$TRIM/adapters/TruSeq3-PE.fa:2:40:15 LEADING:2 TRAILING:2 SLIDINGWINDOW:4:2
-    # my  parameters: ILLUMINACLIP:$TRIM/adapters/TruSeq3-PE.fa:2:30:10:1 SLIDINGWINDOW:4:15
    done
+   
+..     # Titus workshop: ILLUMINACLIP:$TRIM/adapters/TruSeq3-PE.fa:2:40:15 LEADING:2 TRAILING:2 SLIDINGWINDOW:4:2
+..     # my  parameters: ILLUMINACLIP:$TRIM/adapters/TruSeq3-PE.fa:2:30:10:1 SLIDINGWINDOW:4:15
+
 
 Now type 'ls' in the output directory to explore the result files::
 

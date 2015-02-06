@@ -18,44 +18,6 @@ expressed genes, I would suggest 3-5 biological replicates with 30-50
 million reads each.  More reads is usually cheaper than more replicates,
 so 50-100m reads may give you more power to resolve smaller fold changes.
 
-Downloading your data
----------------------
-
-If you do your sequencing at the MSU Core Facility, you'll get an e-mail
-from them when you're samples are ready.  The e-mail will give you an
-FTP site, a username, and a password, as well as a URL.  You can
-use these to download your data.  For example, if you get::
-
-   hostname:       titan.bch.msu.edu
-   username:       rnaseqmodel
-   password:       QecheJa6
-
-   URI:            ftp://rnaseqmodel:QecheJa6@titan.bch.msu.edu
-
-you can go to ftp://rnaseqmodel:QecheJa6@titan.bch.msu.edu in your
-Web browser; that is, it lets you combine your username and password
-to open that link.
-
-In this case, you will see a 'testdata' directory.  If you click on that,
-you'll see a bunch of fastq.gz files.  These are the files that you
-want to get onto the HPC.
-
-To download these files onto the HPC, log into the HPC, go to the
-directory on the HPC you want to put the files in, and run a 'wget' --
-for example, on the HPC::
-
-   mkdir ~/testdata
-   cd ~/testdata
-
-   wget -r -np -nH ftp://rnaseqmodel:QecheJa6@titan.bch.msu.edu/testdata/
-
-This will download _all_ of the files in that directory.  You can also do
-them one at a time, e.g. to get 'Ath_Mut_1_R1.fastq.gz', you would do
-
-   wget ftp://rnaseqmodel:QecheJa6@titan.bch.msu.edu/testdata/Ath_Mut_1_R1.fastq.gz
-
-Tada!
-
 Developing your own pipeline
 ----------------------------
 
@@ -90,4 +52,20 @@ you'll need to develop your own analysis pipeline.  Here are some tips.
 8. Provide your scripts and raw counts files as part of any publication
    or thesis, perhaps via `figshare <http://figshare.com>`__.
 
-Next: :doc:`more-resources`
+
+Informational resources
+----------------------
+
+`UT (Austin) Sequencing Core prices <https://wikis.utexas.edu/display/GSAF/Pricing>`__ - costs and yields for sequencing.
+
+`ANGUS - summer NGS course <http://angus.readthedocs.org/en/2014>`__ - lots of resources and materials and book reference
+
+`Data Carpentry <http://www.datacarpentry.org>`__ - intro to R, etc.
+
+`Software Carpentry <http://software-carpentry.org>`__ - more scripting, Python, etc.
+
+
+Places to share data, scripts, and results files
+------------------------------------------------
+
+`Figshare <http://figshare.com>`__.

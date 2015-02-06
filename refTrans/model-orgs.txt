@@ -6,13 +6,13 @@ Reference based RNAseq assembly in model organisms
 Tutorials:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    m-dataNsoftware_HPC
    m-quality
    m-tophat
-   m-htseq
-   m-more-tophat
+   m-count
    m-data-analysis
+   m-func-analysis
    m-advice
-..   more-resources
+

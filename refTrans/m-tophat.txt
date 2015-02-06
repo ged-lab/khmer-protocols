@@ -8,6 +8,8 @@ reads to the reference gene set, for the purpose of counting how many
 reads have come from each gene.  We'll be using the `TopHat software
 <http://ccb.jhu.edu/software/tophat/manual.shtml>`__
 
+.. note:: This section reuires TopHat2/2.0.12, Bowtie/2.2.3.0 and Samtools/0.1.19.0 installed
+
 Download the Bowtie2 index
 -------------------------- 
 
@@ -23,7 +25,7 @@ The `Illumina iGenomes project <http://cufflinks.cbcb.umd.edu/igenomes.html>`__
 provided the RNA-Seq user community with a set of genome sequence indexes (including Bowtie indexes).  
 
 We will download the iGenome index for the UCSC hg19 assembly version and 
-define the path of the genome and genome_index_base which the name of any 
+define the path of the genome and genome_index_base which is the name of any 
 of the index files up to but not including the first period.
 
 .. check if the data directory exists
@@ -79,7 +81,6 @@ So we need to merge every two SE files belonging to the same sample
         input_R1="$f"
         input_R2=$(echo "$f" | sed s/R1/R2/)				                
         output=$(echo "$f" | sed s/R1/R/)
-        printf $input_R1" "$input_R2" "$output"\n"
         cat $input_R1 $input_R2 > $output
    done
 
@@ -92,7 +93,7 @@ And now run TopHat on one sample::
        --num-threads 4 \
        --GTF "$GTF_file" \
        --transcriptome-index "$workingPath/trans_Index/transcriptome" \
-       --output-dir salivary_repl1 \
+       --output-dir salivary_repl1_tophat \
        $Bowtie2Index \
        salivary_repl1_R1.pe.fq.gz salivary_repl1_R2.pe.fq.gz,salivary_repl1_R.se.fq.gz 
 
@@ -103,8 +104,7 @@ This will take about ~10-15 minutes. We can run all the samples sequencially usi
         input_R1="$f"
         input_R2=$(echo "$f" | sed s/R1/R2/)
         input_R=$(echo "$f" | sed s/R1.pe/R.se/)
-        output=$(basename "$f" | cut -f 1,2 -d "_")
-        printf $input_R1"\n"$input_R2"\n"$input_R"\n"$output"\n"
+        output=$(basename "$f" | cut -f 1,2 -d "_")_tophat
         tophat \
             --num-threads 4 \
             --GTF "$GTF_file" \
@@ -114,10 +114,12 @@ This will take about ~10-15 minutes. We can run all the samples sequencially usi
             $input_R1 $input_R2,$input_R 
    done
 
-With large input files, TopHat will take hours and may be days. It will be more 
-efficient to run TopHat on all samples in parallel jobs
+.. Note::
 
-:doc:`./para_HPC
+   With large input files, TopHat will take hours and may be days. It will be more 
+   efficient to run TopHat on all samples in parallel jobs
+   
+   :doc:`./m-HPC-tophat`
 
 
 Counting mapped reads percentage

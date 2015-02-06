@@ -1,0 +1,138 @@
+Differential expression by EdgeR
+================================
+
+.. shell start
+
+We'll be using `edgeR
+<http://www.bioconductor.org/packages/release/bioc/html/edgeR.html>`__
+to do the basic differential expression analysis of our counts.
+
+Create R script to run edgeR
+----------------------------
+
+To run edgeR, you need to write a data loading and manipulation script in R. 
+This script will load in all the studied samples, execute an MA plot, 
+and provide a spreadsheet with differential expression of the studied tissues.
+We will go togther step by step to understand and write this scrip through the command line
+
+First, We need to combine all the count files of the studied samples into one dataset.
+Also we need to classfy these samples into groups to compare them. In this case we will have 
+two replicates for each studied tissue. This code this going to deals with your 
+samples whatever the no of replicates and the studied groups. 
+
+::
+
+   echo "
+   First_sample <- TRUE
+   columnID <- 2
+   group <- c()
+   for (tophat_folder in dir(pattern='*_tophat')){
+       file.name <- paste(tophat_folder, '/total_count.txt', sep='')
+       sample.name <- sub('_tophat','',tophat_folder)
+       if (First_sample){
+           all.data <- read.delim(file.name, col.names=c('gene', sample.name), sep='\t', colClasses=c('character', 'numeric'), row.names=1)
+           First_sample <- FALSE
+       } else {
+           temp <- read.delim(file.name, col.names=c('gene', sample.name), sep='\t', colClasses=c('character', 'numeric'), row.names=1)
+           #all.data$sample.name <- temp$sample.name
+           all.data[,columnID] <- temp[,1]
+           colnames(all.data)[columnID] = sample.name
+           columnID = columnID + 1
+       }
+       group_label <- sub('_repl[1-2]','', sample.name)
+       group <- c(group,group_label)
+   }" > edgeR_difExp.R
+
+The count output of HTseqcount ends with five lines of summary statistics about the mapped reads.
+So we need to the eliminate the last five rows in our dataset.
+
+::
+
+   echo "all.data <- all.data[1:(nrow(all.data)-5),]" >> edgeR_difExp.R
+   
+We now have a data frame with all the data in it. let us have an additional
+line to show us the first few lines of our dataset:: 
+   
+   echo "head(all.data)" >> edgeR_difExp.R
+
+It is time to load edgR package into memory o start working with
+
+::   
+   
+   echo "library('edgeR')" >> edgeR_difExp.R
+
+Now, it is time to calculte the differention expression. 
+`edgeR <http://www.bioconductor.org/packages/release/bioc/html/edgeR.html>`__ 
+has different functions for calculation of differential expression. 
+We are using the 2 group comparison model. If you have more than 2 groups to compare, 
+you will have to select the appropriate functions according to the edgR manual
+
+::
+
+   echo "
+   dge = DGEList(counts=all.data, group=group)
+   dge <- estimateCommonDisp(dge)
+   dge <- estimateTagwiseDisp(dge)
+   et <- exactTest(dge)
+   etp <- topTags(et, n=100000)" >> edgeR_difExp.R
+
+Let's add a line to have a quick view of the results ::
+   
+   echo "summary(etp\$table)" >> edgeR_difExp.R
+   
+We also can plot our results
+    
+::
+
+   echo "
+   etp\$table\$logFC = -etp\$table\$logFC
+   pdf('edgeR-MA-plot.pdf')
+   plot(
+     etp\$table\$logCPM,
+     etp\$table\$logFC,
+     xlim=c(-3, 20), ylim=c(-12, 12), pch=20, cex=.3,
+     col = ifelse( etp\$table\$FDR < .1, 'red', 'black' ) )
+   dev.off()" >> edgeR_difExp.R
+
+Finally we will write a spreadsheet with differential expression of the studied tissues
+
+::
+
+   echo "write.csv(etp\$table, 'edgeR-lung-vs-salivary.csv')" >> edgeR_difExp.R
+   
+
+.. Note::
+
+   you can copy the script from this link and save it in the working directory 
+   under the name edgeR_difExp.R
+
+   :doc:`./m-edgeR_difExp`
+
+
+Running edgeR on a data subset
+------------------------------
+
+Next, to run the R script, do
+
+::
+
+   Rscript edgeR_difExp.R
+
+This will produce two files, `edgeR-MA-plot.pdf
+<http://2014-msu-rnaseq.readthedocs.org/en/latest/_static/subset/edgeR-MA-plot.pdf>`__
+and `edgeR-lung-vs-salivary.csv
+<http://2014-msu-rnaseq.readthedocs.org/en/latest/_static/subset/edgeR-lung-vs-salivary.csv>`__;
+The last file consists of five columns: gene name, log fold change, P-value, and
+FDR-adjusted P-value.
+
+.. shell stop
+
+----
+
+Links:
+
+* `edgeR tutorial from UT Austin <https://wikis.utexas.edu/display/bioiteam/Differential+gene+expression+analysis#Differentialgeneexpressionanalysis-Optional:edgeR>`__
+
+----
+
+Next: :doc:`m-func-analysis`

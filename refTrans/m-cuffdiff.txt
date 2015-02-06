@@ -1,0 +1,56 @@
+Differential expression by Cuffdiff
+===================================
+
+.. shell start
+
+We'll be using `Cufdiff
+<http://www.bioconductor.org/packages/release/bioc/html/edgeR.html>`__
+to do the differential expression analysis based on the cufflinks output.
+
+define the groups you want to compare (According to our sample naming conventions, 
+it should be exactly matching the stating name of your samples)
+::
+
+   groups=(lung salivary)
+   
+Cufflinks recive replicates as comma separated lists for each condition.    
+You can write those lists yourself but we can also create these lists 
+and store them in an array.
+::
+
+   gp_replicates=()
+   for gp in "${groups[@]}"; do
+        replicates=()
+        for rep in $gp*_tophat; do
+            replicates+=("$workingPath/$rep/accepted_hits.bam")
+        done
+        gp_replicates+=($(echo ${replicates[*]} | tr ' ' ','))
+   done
+
+You can see how these comma separated lists looks like by::  
+ 
+   declare -p gp_replicates
+   #printf "${gp_replicates[*]}"
+
+Now we can run the Cuffdiff
+
+::
+
+   cuffdiff \
+    --output-dir "$workingPath/cuffdiff_out" \
+    --num-threads 2 \
+    --multi-read-correct \
+    --frag-bias-correct ${homo_sapiens_genome} \
+    --labels ${groups[0]},${groups[1]} \
+    $GTF_file  ${gp_replicates[0]}  ${gp_replicates[1]}
+
+On HPCC, most probably you need to schadule this job 
+
+.. shell stop
+
+----
+
+Next: :doc:`m-func-analysis`
+
+
+FOLDERS=`ls -dm ./ | tr -d ' '`
