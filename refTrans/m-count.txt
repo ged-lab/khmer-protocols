@@ -31,20 +31,34 @@ Also they are avaliable through other genomic software projects e.g.
 
 :doc:`./m-cufflinks`
 
-Mapping the reads to transcripts (gene isoforms) rather than the whole gene will enable 
-the identification of changes in alterative splicaing machinary. 
+Mapping the reads to transcripts (gene isoforms) rather than the whole genes will enable 
+the identification of changes in alterative splicaing machinary. Alternative splicing is believed to be 
+one of the most powerful regulatory mechanisms in severel biological conditions including 
+`cancer <http://www.ncbi.nlm.nih.gov/pubmed/24336324>`__, 
+`development <http://www.ncbi.nlm.nih.gov/pubmed/24752171>`__,
+`immmunology <http://www.ncbi.nlm.nih.gov/pubmed/23550649>`__, 
+`fertility <http://www.ncbi.nlm.nih.gov/pubmed/25474150>`__, and many others.
+
 `Cufflinks <http://cole-trapnell-lab.github.io/cufflinks/>`__ is the canonical software 
-package to do that. Cufflinks can do the mapping based on avaliable annoataion files 
-but also it can make its own gene model. This feature enables Cufflinks to predict denovo transcripts.
-On the other hand, mapping to transcripts requires the implementation of error prone modeling 
-approaches and thus requires rigorous laboratory confirmation. Cufflinks also 
+package to do that. But there are other softwares for analysis of differential 
+splicing events (exon skipping, intron retention, etc.) 
+e.g. `MATS <http://rnaseq-mats.sourceforge.net/>`__, and 
+`MISO <http://genes.mit.edu/burgelab/miso/>`__.
+
+Cufflinks also 
 pools the results of all transcripts per gene to give an answer similar to the one obtained from 
 htseq-like packages. One comparative feature that should be considered is the tendency of Cufflinks to 
 utilize ambiguously aligned reads (versus htseq wich use anly the uniquelly mapped reads). 
 This feature might explain a lot of the differences in the output of the 2 softwares.
-There are other softwares for analysis of differential splicing events (exon skipping, intron retention, etc.) 
-e.g. `MATS <http://rnaseq-mats.sourceforge.net/>`__, and 
-`MISO <http://genes.mit.edu/burgelab/miso/>`__.
+
+Cufflinks can do the mapping based on the avaliable annoataion files which will 
+make Cufflinks operate on the known transcripts only. However Cufflinks can make 
+its own gene model. This feature has two inportant applications:
+* Prediction of denovo transcripts of known genes which is a valid possibility even in well annoatated oraganisms.  
+* Prediction of novel genes. This feature is very helpful for semi-model organisms that does not have a well annoatated transcriptome.
+On the other hand, mapping to transcripts requires the implementation of error prone modeling 
+approaches and thus requires rigorous laboratory confirmation. 
+
 
 
 ----

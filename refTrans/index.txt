@@ -9,11 +9,20 @@ Materials are based on and extending two workshops given at MSU by Titus Brown a
 Both workshops were sponsored by `iCER <http://icer.msu.edu/>`__ 
 and made use of the `MSU High Performance Compute Center <http://hpcc.msu.edu/>`__ .
 
+.. figure:: files/model-rnaseq-pipeline.png
+
+Tutorials:
+
 .. toctree::
    :maxdepth: 2
 
-   semi-orgs
-   model-orgs
+   m-dataNsoftware_HPC
+   m-quality
+   m-tophat
+   m-count
+   m-data-analysis
+   m-func-analysis
+   m-advice
 
 Reference material
 ------------------

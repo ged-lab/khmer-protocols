@@ -7,9 +7,6 @@ We'll be using `edgeR
 <http://www.bioconductor.org/packages/release/bioc/html/edgeR.html>`__
 to do the basic differential expression analysis of our counts.
 
-Create R script to run edgeR
-----------------------------
-
 To run edgeR, you need to write a data loading and manipulation script in R. 
 This script will load in all the studied samples, execute an MA plot, 
 and provide a spreadsheet with differential expression of the studied tissues.
@@ -19,7 +16,6 @@ First, We need to combine all the count files of the studied samples into one da
 Also we need to classfy these samples into groups to compare them. In this case we will have 
 two replicates for each studied tissue. This code this going to deals with your 
 samples whatever the no of replicates and the studied groups. 
-
 ::
 
    echo "
@@ -45,7 +41,6 @@ samples whatever the no of replicates and the studied groups.
 
 The count output of HTseqcount ends with five lines of summary statistics about the mapped reads.
 So we need to the eliminate the last five rows in our dataset.
-
 ::
 
    echo "all.data <- all.data[1:(nrow(all.data)-5),]" >> edgeR_difExp.R
@@ -56,7 +51,6 @@ line to show us the first few lines of our dataset::
    echo "head(all.data)" >> edgeR_difExp.R
 
 It is time to load edgR package into memory o start working with
-
 ::   
    
    echo "library('edgeR')" >> edgeR_difExp.R
@@ -66,7 +60,6 @@ Now, it is time to calculte the differention expression.
 has different functions for calculation of differential expression. 
 We are using the 2 group comparison model. If you have more than 2 groups to compare, 
 you will have to select the appropriate functions according to the edgR manual
-
 ::
 
    echo "
@@ -81,7 +74,6 @@ Let's add a line to have a quick view of the results ::
    echo "summary(etp\$table)" >> edgeR_difExp.R
    
 We also can plot our results
-    
 ::
 
    echo "
@@ -95,11 +87,9 @@ We also can plot our results
    dev.off()" >> edgeR_difExp.R
 
 Finally we will write a spreadsheet with differential expression of the studied tissues
-
 ::
 
-   echo "write.csv(etp\$table, 'edgeR-lung-vs-salivary.csv')" >> edgeR_difExp.R
-   
+   echo "write.csv(etp\$table, 'edgeR-lung-vs-salivary.csv')" >> edgeR_difExp.R   
 
 .. Note::
 
@@ -109,11 +99,7 @@ Finally we will write a spreadsheet with differential expression of the studied 
    :doc:`./m-edgeR_difExp`
 
 
-Running edgeR on a data subset
-------------------------------
-
-Next, to run the R script, do
-
+Now we can run the R script to do the analysis
 ::
 
    Rscript edgeR_difExp.R

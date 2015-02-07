@@ -51,7 +51,15 @@ information is typically shared in GTF files. Illumina iGenomes indexes come
 with GTF transcript annotation files (Congratualtion, this means you have downloaded them already)
 Let us define the path of the required GTF in the downloaded iGenome package
 ::
+
    GTF_file="$workingPath/Homo_sapiens/UCSC/hg19/Annotation/Genes/genes.gtf" 
+   
+.. Note::
+   The human genome is compased of multi fasta entries for chr1-22, M, X,and Y. 
+   genes.gtf has some non canonical chromosomal headers e.g. chr17_ctg5_hap1, chr17_gl000205_random, 
+   chrUn_gl000228, and many more. You can learn more about these header from this 
+   `discussion <https://www.biostars.org/p/7629/>`__ . These header will cause some software to 
+   through some warning messages. Do not worry about it :) 
 
 We can pass the annotation file to TopHat through the optional argument (--GTF). 
 TopHat will first extract the transcript sequences and use Bowtie to align reads to this virtual transcriptome first. 
