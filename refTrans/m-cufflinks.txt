@@ -47,7 +47,7 @@ mapping to the whole transcriptome, 100 fragments of this million will map to on
 ----
 
 Because we have multiple RNA-Seq libraries, It is recommend that you merge these assemblies into a master transcriptome. 
-This step is required for a differential expression analysis of the new transcripts we’ve assembled. 
+This step is required for a differential expression analysis of the new transcripts we've assembled. 
 `Cuffmerge <http://cole-trapnell-lab.github.io/cufflinks/cuffmerge/index.html>`__ performs this merge step.
 
 First step is to specify all the input GTF files in a **manifest** file listing full paths to the files.
