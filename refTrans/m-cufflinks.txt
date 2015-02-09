@@ -33,11 +33,11 @@ To do this in a more conservative approach, there are several arguments that you
 
 Out folder will have four files::
 
-   transcripts.gtf        : This GTF file contains Cufflinks’ assembled isoforms.
+   transcripts.gtf        : This GTF file contains Cufflinks' assembled isoforms.
    isoforms.fpkm_tracking : This file contains the estimated isoform-level expression values  
    genes.fpkm_tracking    : This file contains the estimated gene-level expression values        
    skipped.gtf            : List of skipped loci. Cufflinks skip a locus if more than 1000000 fragment
-                            mapped to it. You can change this through the (–max-bundle-frags)  
+                            mapped to it. You can change this through the (-max-bundle-frags)  
 
 Note, Cufflinks express the expression values in **FPKM** (Fragments per kilobase of exon per million reads mapped). 
 This unit corrects for the gene size and the depth of sequencing. So let us say that the expression of a given gene was 100, 

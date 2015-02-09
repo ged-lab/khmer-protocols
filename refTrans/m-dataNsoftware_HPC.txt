@@ -121,8 +121,8 @@ and do the same for the lung samples
 
 Link your data into a working directory
 ---------------------------------------
-Rather than copying the files into the working directory, let’s just link them in. 
-this creates a reference so that UNIX knows where to find them but doesn’t need to actually move them around.
+Rather than copying the files into the working directory, let's just link them in. 
+this creates a reference so that UNIX knows where to find them but doesn't need to actually move them around.
 ::
    ln -fs $workingPath/refTransData/dataSubset/*.fq.gz $workingPath
    
