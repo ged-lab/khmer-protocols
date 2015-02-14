@@ -4,17 +4,9 @@ Counting the reads that map to each feature
 After mapping of reads back to the transcriptome. Now it is time to figure out 
 the expression level of each expression unit. There are two main flavours of this process:
 
-.. toctree::
-   :maxdepth: 2
 
-   m-htseq
-   m-cufflinks
-
-
-----
-
-:doc:`./m-htseq`
-
+Counting the reads that map to each gene
+----------------------------------------
 Simply count all the reads that map **uniquelly** to all exons of the gene. There are several 
 software packages that can do this e.g. 
 `htseq-count <http://www-huber.embl.de/users/anders/HTSeq/doc/count.html>`__.
@@ -27,10 +19,12 @@ Annotaions file of model oraganisms are avaliable on all gene banks (e.g.
 Also they are avaliable through other genomic software projects e.g. 
 `Illumina iGenomes project <http://cufflinks.cbcb.umd.edu/igenomes.html>`__. 
 
-----
+Go for:
+:doc:`./m-htseq`
 
-:doc:`./m-cufflinks`
 
+Counting the reads that map to each transcript
+----------------------------------------------
 Mapping the reads to transcripts (gene isoforms) rather than the whole genes will enable 
 the identification of changes in alterative splicaing machinary. Alternative splicing is believed to be 
 one of the most powerful regulatory mechanisms in severel biological conditions including 
@@ -62,19 +56,12 @@ On the other hand, mapping to transcripts requires the implementation of error p
 approaches and thus requires rigorous laboratory confirmation. 
 
 
+Go for:
+:doc:`./m-cufflinks`
+
 
 ----
 
 Links:
 
 * `Trapnell et al. 2013 Differential analysis of gene regulation at transcript resolution with RNA-seq <http://www.nature.com/nbt/journal/v31/n1/full/nbt.2450.html>`__
-
-----
-
-Next, choose one way to go:
-
-.. toctree::
-   :maxdepth: 1
-
-   m-htseq
-   m-cufflinks
