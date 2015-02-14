@@ -54,7 +54,7 @@ And next, run HTSeq
 
 When this is done, let us view one of the output file::
 
-   less salivary_repl1_tophat/salivary_repl1_counts.txt
+   less salivary_repl1_tophat/salivary_repl1_PEcounts.txt
 
 (use 'q' to exit).  These are your gene counts.
 
@@ -78,4 +78,4 @@ DEseq and edgeR want exactly this kind of information!
 
 ----
 
-Next: :doc:`m-data-analysis`
+Next: :doc:`m-edgeR`

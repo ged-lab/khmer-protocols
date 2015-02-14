@@ -8,7 +8,7 @@ reads to the reference gene set, for the purpose of counting how many
 reads have come from each gene.  We'll be using the `TopHat software
 <http://ccb.jhu.edu/software/tophat/manual.shtml>`__
 
-.. note:: This section reuires TopHat2/2.0.12, Bowtie/2.2.3.0 and Samtools/0.1.19.0 installed
+.. note:: This section reuires TopHat2/2.0.13, Bowtie/2.2.3.0 and Samtools/0.1.19.0 installed
 
 Download the Bowtie2 index
 -------------------------- 
@@ -24,9 +24,7 @@ a given genome assembly.
 The `Illumina iGenomes project <http://cufflinks.cbcb.umd.edu/igenomes.html>`__ 
 provided the RNA-Seq user community with a set of genome sequence indexes (including Bowtie indexes).  
 
-We will download the iGenome index for the UCSC hg19 assembly version and 
-define the path of the genome and genome_index_base which is the name of any 
-of the index files up to but not including the first period.
+We will download the iGenome index for the UCSC hg19 assembly version. 
 
 .. check if the data directory exists
 .. ::
@@ -35,15 +33,36 @@ of the index files up to but not including the first period.
 
 ::
 
+        cd $workingPath
         wget ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/Homo_sapiens/UCSC/hg19/Homo_sapiens_UCSC_hg19.tar.gz
         tar -zxvf Homo_sapiens_UCSC_hg19.tar.gz
-        homo_sapiens_genome="$workingPath/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa"
-        Bowtie2Index="$workingPath/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome"
-
+ 
 .. ::
 
    fi
 
+.. note::
+
+   The homo sapians iGenome tarball is huge (~20 GiB). I have prepared a smaller version containing the minimal required files. 
+   This file is stored in Amazon S3. To use this file replace the last 3 lines of code with::
+
+        cd $workingPath
+        wget https://s3.amazonaws.com/reftransdata/Homo_sapiens_UCSC_hg19_small.tar.gz
+        tar -zxvf Homo_sapiens_UCSC_hg19_small.tar.gz
+        mv Homo_sapiens2 Homo_sapiens
+    
+..   for more details about creating and using this file, check this file:  :doc:`./igenome-backup`
+   
+
+Define the path of the genome and genome_index_base which is the name of any 
+of the index files up to but not including the first period.
+
+::
+
+        homo_sapiens_genome="$workingPath/Homo_sapiens/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa"
+        Bowtie2Index="$workingPath/Homo_sapiens/UCSC/hg19/Sequence/Bowtie2Index/genome"
+ 
+ 
 Making use of gene model annotations
 ------------------------------------
 Model organisms usually have a good annotation of their transcriptome. Annotation 
@@ -72,7 +91,7 @@ To create the transcriptome-index, we can inovke TopHat without input reads
 ::
 
    tophat \
-       --num-threads 4 \
+       --num-threads 1 \
        --GTF "$GTF_file" \
        --transcriptome-index "$workingPath/trans_Index/transcriptome" \
        $Bowtie2Index
@@ -81,7 +100,7 @@ To create the transcriptome-index, we can inovke TopHat without input reads
 Prepare the input reads
 -----------------------
 You can pass these two PE files directly to the TopHat to do the pair end orinted alignment. 
-TopHat allows the use of additional unpaired reads but it has to pass as single file. 
+TopHat allows the use of additional unpaired reads but it has to pass as a single file. 
 So we need to merge every two SE files belonging to the same sample
 ::
 
@@ -98,14 +117,14 @@ Mapping reads
 And now run TopHat on one sample::
 
    tophat \
-       --num-threads 4 \
+       --num-threads 2 \
        --GTF "$GTF_file" \
        --transcriptome-index "$workingPath/trans_Index/transcriptome" \
        --output-dir salivary_repl1_tophat \
        $Bowtie2Index \
        salivary_repl1_R1.pe.fq.gz salivary_repl1_R2.pe.fq.gz,salivary_repl1_R.se.fq.gz 
 
-This will take about ~10-15 minutes. We can run all the samples sequencially using a for loop
+This will take about ~10-15 minutes. We can run all the samples sequencially using a for loop.
 ::
 
    for f in *R1.pe*; do
@@ -114,7 +133,7 @@ This will take about ~10-15 minutes. We can run all the samples sequencially usi
         input_R=$(echo "$f" | sed s/R1.pe/R.se/)
         output=$(basename "$f" | cut -f 1,2 -d "_")_tophat
         tophat \
-            --num-threads 4 \
+            --num-threads 1 \
             --GTF "$GTF_file" \
             --transcriptome-index "$workingPath/trans_Index/transcriptome" \
             --output-dir $output \
@@ -124,20 +143,35 @@ This will take about ~10-15 minutes. We can run all the samples sequencially usi
 
 .. Note::
 
-   With large input files, TopHat will take hours and may be days. It will be more 
-   efficient to run TopHat on all samples in parallel jobs
+   With large input files, TopHat will take hours and may be days. You can increase the 
+   number of threads but make sure that you have the required underlying resources.   
+   It will be more efficient to run TopHat on all samples in parallel jobs. On Amazon AWS, 
+   you can run multiple instances. For HPC, you can submet multiple jobs simultaneously. 
    
    :doc:`./m-HPC-tophat`
+
+
+The output will be a folder for each sample names like <sample-name>_tophat. Each folder contain multiple files
+
+1. accepted_hits.bam:  The main output file with contains the read alignment in `SAM <http://samtools.sourceforge.net/>`__ format.
+2. unmapped.bam: Another file in the same format but contains only the unmapped reads
+3. junctions.bed, insertions.bed, deletions.bed: A `UCSC BED track <http://genome.ucsc.edu/FAQ/FAQformat.html#format1>`__ of junctions, insertions and deletions reported by TopHat
+4. align_summary.txt: a text file that contains summry statistics about the mapped reads
 
 
 Counting mapped reads percentage
 --------------------------------
 
-Let's ask samtools for the total number of reads that mapped::
+You can open the align_summary file in any out folder ::
 
-   samtools view -c -F 4 salivary_repl1/accepted_hits.bam
+   vim salivary_repl1_tophat/align_summary.txt
 
-You should get around 186,256.  
+We can calculte these statistics ourselves. Let's ask samtools for the total number of reads that mapped. 
+We count all the alignment in the BAM file but exclude unmapped reads (-F 4) and also exclude non primary alignments (-F 256)::
+
+   samtools view -c -F 4 -F 256 salivary_repl1_tophat/accepted_hits.bam
+
+You should get around 170,849.  
 
 We can count the reads in our input files::
    
@@ -148,10 +182,10 @@ We can count the reads in our input files::
 
 You should get around 189,150
 
-So you have 186,256 mapped reads out of 189,150 -- about 98%.  That's pretty good!
+So you have 170,849 mapped reads out of 189,150 -- about 90.3%.  That's pretty good!
 
 .. shell stop
 
 ----
 
-Next: :doc:`m-htseq`
+Next: :doc:`m-count`

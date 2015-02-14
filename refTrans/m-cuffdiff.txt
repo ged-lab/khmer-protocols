@@ -44,7 +44,12 @@ Now we can run the Cuffdiff
     --labels ${groups[0]},${groups[1]} \
     $GTF_file  ${gp_replicates[0]}  ${gp_replicates[1]}
 
-On HPCC, most probably you need to schadule this job 
+Cuffdiff usually requires high memory and would be more faster if you increased the no of threads
+Check your computer resources before running it
+
+Cuffdif will output a folder cuffdiff_out in the working directory. The folder caintains a lot of files. 
+You need to read about it `here <http://cole-trapnell-lab.github.io/cufflinks/cuffdiff/#cuffdiff-output-files>`__
+
 
 .. shell stop
 

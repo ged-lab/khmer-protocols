@@ -16,7 +16,7 @@ Tutorials:
 .. toctree::
    :maxdepth: 2
 
-   m-dataNsoftware_HPC
+   m-resources
    m-quality
    m-tophat
    m-count

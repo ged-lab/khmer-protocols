@@ -18,6 +18,8 @@ As we discussed before, Cufflinks uses the ambiguously aligned reads in its calc
 To do this in a more conservative approach, there are several arguments that you can pass to Cufflinks:
 1. --multi-read-correct                 Tells Cufflinks to do an initial estimation procedure to more accurately weight reads mapping to multiple locations in the genome
 2. --frag-bias-correct <genome.fa>      Providing Cufflinks with a genome reference to run a bias detection and correction algorithm which improve accuracy of transcript abundance estimates. 
+However it worth to mention that applying these arguments will cause cufflinks to tke much more longer time to finish the job. 
+Forexample, with our set of data, cuffinks will need ~ 10 hours to finish compared to less than 2 hours without these arguments
 
 ::
 
@@ -26,12 +28,12 @@ To do this in a more conservative approach, there are several arguments that you
             --GTF-guide "$GTF_file" \
             --multi-read-correct \
             --frag-bias-correct ${homo_sapiens_genome} \
-            --num-threads 4 \
+            --num-threads 2 \
             --output-dir $f/cufflink_out \
             $f/accepted_hits.bam
    done
 
-Out folder will have four files::
+For each sample, We directed the outout to a folder called cufflink_out to be inside the tophat output folde. cufflink_out folder will have four files::
 
    transcripts.gtf        : This GTF file contains Cufflinks' assembled isoforms.
    isoforms.fpkm_tracking : This file contains the estimated isoform-level expression values  
@@ -63,7 +65,7 @@ Now we can run the cuffmerge software
    cuffmerge \
         --ref-sequence ${homo_sapiens_genome} \
         --ref-gtf $GTF_file \
-        --num-threads 4 \
+        --num-threads 2 \
         assembly_GTF_list.txt
 
 The cuffmerge will output a folder called "merged_asm" which contain "merged.gtf" file 

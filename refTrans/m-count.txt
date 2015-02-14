@@ -2,7 +2,7 @@ Counting the reads that map to each feature
 ===========================================
 
 After mapping of reads back to the transcriptome. Now it is time to figure out 
-the expression level of each expression unit. There is two main flavours of this process:
+the expression level of each expression unit. There are two main flavours of this process:
 
 .. toctree::
    :maxdepth: 2
@@ -54,8 +54,10 @@ This feature might explain a lot of the differences in the output of the 2 softw
 Cufflinks can do the mapping based on the avaliable annoataion files which will 
 make Cufflinks operate on the known transcripts only. However Cufflinks can make 
 its own gene model. This feature has two inportant applications:
+
 * Prediction of denovo transcripts of known genes which is a valid possibility even in well annoatated oraganisms.  
 * Prediction of novel genes. This feature is very helpful for semi-model organisms that does not have a well annoatated transcriptome.
+
 On the other hand, mapping to transcripts requires the implementation of error prone modeling 
 approaches and thus requires rigorous laboratory confirmation. 
 
@@ -69,4 +71,10 @@ Links:
 
 ----
 
-Next: :doc:`m-m-htseq`
+Next, choose one way to go:
+
+.. toctree::
+   :maxdepth: 1
+
+   m-htseq
+   m-cufflinks

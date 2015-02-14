@@ -7,6 +7,8 @@ We'll be using `edgeR
 <http://www.bioconductor.org/packages/release/bioc/html/edgeR.html>`__
 to do the basic differential expression analysis of our counts.
 
+.. note:: This section reuires GNU R core installed with edgeR package installed
+
 To run edgeR, you need to write a data loading and manipulation script in R. 
 This script will load in all the studied samples, execute an MA plot, 
 and provide a spreadsheet with differential expression of the studied tissues.

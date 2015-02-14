@@ -3,6 +3,15 @@ Short read quality and trimming
 
 .. shell start
 
+It is time to run your Tmux session and it is a good trend to do this from your root directory::
+
+   cd ~
+   tmux
+
+Now, the remote computer will sustain your jobs even your ssh connection was interrupted.
+You can always restore your tmux session by going to your root directory and type "tmux attach"
+
+
 Assessment of sequence quality (FastQC)
 ---------------------------------------
 
@@ -14,15 +23,16 @@ FastQC operates on Fastq files as well as GZip compressed Fastq (.gz) files.
 Now run FastQC on your sequencing file
 ::
    
+   cd $workingPath
    mkdir rawData_fastqc
-   fastqc *.fq.gz --outdir=./rawData_fastqc
+   fastqc *.fq.gz --outdir=$workingPath/rawData_fastqc
 
 .. .. note:: When you pass multiple files to FastQC, it operates one file at a time give it a seprate output.
 
 
 Now type 'ls' in the output directory to explore the result files::
 
-   ls ./rawData_fastqc
+   ls $workingPath/rawData_fastqc
 
 and you will see ::
 
@@ -30,9 +40,15 @@ and you will see ::
    salivary_repl1_R1_fastqc.zip
    ...
 
-In the root of your terminal, you can copy these files to your laptop and open them in a browser::
+In the root of your terminal, you can copy these files to your laptop and open them in a browser
+
+For HPCC::
 
    scp <username@hpc.msu.edu>:<workingPath>/rawData_fastqc/salivary*fastqc.* /tmp
+   
+For Amazon::
+   
+   scp -i <ec2key.pem> ubuntu@<IP or DNS alias of the instance>:/path/to/file .
 
 and then open the html files in your browser.
 
@@ -40,8 +56,8 @@ Links:
 
 * `FastQC tutorial video <http://www.youtube.com/watch?v=bz93ReOv87Y>`__
 
-Trimmomatic
------------
+Trimming of low quality bases (Trimmomatic)
+-------------------------------------------
 
 Now we're going to do some trimming to remove any leftover adaptor sequences and low quality trailing edges. 
 We'll be using `Trimmomatic <http://www.usadellab.org/cms/?page=trimmomatic>`__.
@@ -53,6 +69,7 @@ For a discussion of optimal RNAseq trimming strategies, see `MacManes, 2014
 To run Trimmomatic
 ::
 
+   cd $workingPath
    for f in *R1*.gz; do
         input_R1="$f"
         input_R2=$(echo "$f" | sed s/R1/R2/)				                
@@ -107,7 +124,7 @@ Run FastQC again
 ::
 
    mkdir trimmedData_fastqc
-   fastqc *.pe.fq.gz --outdir=./trimmedData_fastqc
+   fastqc *.pe.fq.gz --outdir=$workingPath/trimmedData_fastqc
 
 .. * Does it matter that you still have adapters!?
 
