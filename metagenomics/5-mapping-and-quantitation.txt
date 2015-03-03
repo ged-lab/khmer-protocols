@@ -6,10 +6,8 @@
 ======================================
 6. Mapping and abundance quantitation
 ======================================
-<<<<<<< HEAD
 =======
-
->>>>>>> d546acbef3f91e4db67f45b8cfbf2a33220de240
+=======
 
 .. shell start
 
