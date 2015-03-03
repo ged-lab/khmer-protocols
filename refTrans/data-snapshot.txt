@@ -1,5 +1,8 @@
 Create a data snapshot on Amazon
 ================================
+
+.. shell start
+
 Essentially you create a disk; attach it; format it;
 and then copy things to and from it.
 
@@ -108,26 +111,31 @@ Prepare the working data on the EBS volume
  |   /dev/xvda1 is mounted as the root device (note the MOUNTPOINT is listed as /, the root of the Linux file system hierarchy),
  |   and /dev/xvdb is attached, but it has not been mounted yet.
        
-2. New volume does not have a file system. Use the sudo file -s device command to double check ::
+2. New volume does not have a file system. Use the sudo file -s device command to double check 
+ ::
            
     sudo file -s /dev/xvdb
 
 
    If the output of the previous command shows simply data for the device, then there is no file system on the device and you need to create one. 
        
-3. Create an ext4 file system on the volume ::
+3. Create an ext4 file system on the volume 
+ ::
     
     sudo mkfs -t ext4 /dev/xvdb
        
-4. Create a mounting point  directory for the volume. The mount point is where the volume is located in the file system tree and where you read and write files to after you mount the volume::
+4. Create a mounting point  directory for the volume. The mount point is where the volume is located in the file system tree and where you read and write files to after you mount the volume
+ ::
     
     sudo mkdir refTransData/dataSubset
 
-5. Mount the volume at the location of the project folder::
+5. Mount the volume at the location of the project folder
+ ::
     
     sudo mount /dev/xvdb refTransData/dataSubset
 
-6. Copy in a subset of the data (100,000 reads)::
+6. Copy in a subset of the data (100,000 reads)
+ ::
 
     sudo sh -c 'gunzip -c ERR315325_1.fastq.gz | head -400000 | gzip > dataSubset/salivary_repl1_R1.fq.gz'
     sudo sh -c 'gunzip -c ERR315325_2.fastq.gz | head -400000 | gzip > dataSubset/salivary_repl1_R2.fq.gz'
@@ -135,7 +143,8 @@ Prepare the working data on the EBS volume
     sudo sh -c 'gunzip -c ERR315382_2.fastq.gz | head -400000 | gzip > dataSubset/salivary_repl2_R2.fq.gz'
 
         
- and do the same for the lung samples::
+ and do the same for the lung samples
+ ::
 
     sudo sh -c 'gunzip -c ERR315326_1.fastq.gz | head -400000 | gzip > dataSubset/lung_repl1_R1.fq.gz'
     sudo sh -c 'gunzip -c ERR315326_2.fastq.gz | head -400000 | gzip > dataSubset/lung_repl1_R2.fq.gz'
@@ -150,12 +159,14 @@ Follow the `Amazon documenation <http://docs.aws.amazon.com/cli/latest/userguide
 
 1. Get your access key ID and secret access key through `IAM console <https://console.aws.amazon.com/iam/home?#home>`__. Do not forget to add adminstrative access role
 
-2. install AWS Command Line Interface::
+2. install AWS Command Line Interface
+ ::
    
     cd ~
     sudo apt-get install awscli  
    
-3. configure credentials by running::
+3. configure credentials by running
+ ::
 
     aws configure
   
@@ -167,19 +178,22 @@ Follow the `Amazon documenation <http://docs.aws.amazon.com/cli/latest/userguide
     Default output format [None]: json
 
   
-4. Create a snapshot (get the volume-id from the EC2 dashboard in the volums tab)::
+4. Create a snapshot (get the volume-id from the EC2 dashboard in the volums tab)
+ ::
     
     sudo umount -d /dev/xvdb
     aws ec2 create-snapshot --volume-id vol-90ab2b8b --description "refTrans sample data"
    
  The snapshot has an ID: snap-6a5ddae5
 
-5. Now we can share this snapshot but we need to modify its the permissions::
+5. Now we can share this snapshot but we need to modify its the permissions
+ ::
 
     aws ec2 modify-snapshot-attribute --snapshot-id snap-6a5ddae5 --attribute createVolumePermission --operation-type add
    
 Now you can stop your instance and even delete the EBS divers. 
 
+.. shell stop
 
 ----
 

@@ -1,11 +1,11 @@
-Get example data and install/load software on Amazon
-====================================================
+Amazon cloud computer
+=====================
 
 .. shell start
 
 Cloud computing involves deploying groups of remote servers and software 
 networks that allow centralized data storage and online access to computer 
-services or resources `wikipedia <http://en.wikipedia.org/wiki/Cloud_computing>`__ .
+services or resources (`wikipedia <http://en.wikipedia.org/wiki/Cloud_computing>`__) .
 
 `Amazon Web Services <http://aws.amazon.com/>`__ offers a broad set of cloud 
 comutational services. In this protocol we will implement our whole pipeline on an
@@ -43,20 +43,21 @@ Launch a data snapshot
 ----------------------
 Go ahead and open the EC2 service to lunch a suitable instance(s). 
 Change your location on the top right corner of the page to be US East (N. Virginia).
-Consider these notes:
+Push the **Launch Instance** button then follow these instructions:
 
 1. On "Step 1: Choose an Amazon Machine Image (AMI)": The protocol was prepared to run on "Ubuntu Server 14.04 LTS (HVM)"
-2. On "Step 2: Choose an Instance Type": You can run this protocol on t2.medium instance (2 vCPU and 4 GiB memory). But when you start running your own data you can scale this up or down according to your needs
-3. On "Step 3: Configure Instance Details": I just used the default settings
+2. On "Step 2: Choose an Instance Type": You can run this protocol on **t2.medium instance** (2 vCPU and 4 GiB memory). But when you start running your own data you can scale this up or down according to your needs
+3. On "Step 3: Configure Instance Details": We will accept the default settings
 4. On "Step 4: Add storage": 
-     a. start the default with 20 GiB
-     b. add a new new EBS volume of 1 GiB general purpose SSD type. 
-     c. Use our snapshot (snap-6a5ddae5) to create the volume. You can search for it by the snapshot description "refTrans sample data".
+     a. Start the default volume with 20 GiB
+     b. Add a new new EBS volume of 1 GiB general purpose SSD type. 
+     c. Use our snapshot (snap-6a5ddae5) to create the additional volume. You can search for it by the snapshot description "refTrans sample data".
      d. Set the device name as /dev/sdf (be carefull about naming your device. For Linux instance, recommended device names are '/dev/sd[f-p]'. `Source: AWS Block Device Mapping Documentation <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/block-device-mapping-concepts.html>`__)
-     e. Mark the volume with delete after termination (you always have the snapshot to make new volumes).
+     e. Mark the volume with **delete after termination** (you always have the snapshot to make new volumes).
 5. On "Step 5: Tag Instance": Give your instance a name.
-6. On "Step 6: Configure Security Group": Create a new security group and adjust your security rules to enable ports 22, 80, and 443 (SSH, HTTP, and HTTPS).
-7. Make a new key-paur or use yours if you already have one
+6. On "Step 6: Configure Security Group": Create a new security group and add security rules to enable ports 22, 80, and 443 (SSH, HTTP, and HTTPS).
+7. On "Step 7: Review Instance Launch": Review the information of your instance. You will see an alarm about the security of your instnce. This is ok, once you click launch, you will be able to make a key-paur (or use yours if you already have one)
+8. After you launch your instance, the confirmation page will show your instance ID. Click the instance ID to watch your instance status. In the lower half of the page, you will description info of your instance. Copy the puplic IP address to use in the next step.  
 
 Logging into your new cloud instance (Windows version)
 ------------------------------------------------------
@@ -64,7 +65,7 @@ You need an SSH client to conect from you own computer to the Amazon instance yo
 
 1. Download PuTTY and PuTTYgen from: http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html
 2. Run PuTTYgen, Find and load your '.pem' file, and Now, "save private key"
-3. Run PuTTY, paste the public DNS in the host name & expand SSH, click Auth (do not expand), find your private key and click open
+3. Run PuTTY, paste the public DNS in the host name. In the left category panel, expand the SSH entry, select Auth, find your private key and click open
 4. click yes if probmbted then Log in as "ubuntu"
 5. create a folder to contain all the files of this expermint and define this path
  ::
@@ -130,7 +131,9 @@ install prerequisites
 ::
    
    cd ~
+   sudo apt-get update
    sudo apt-get install gcc g++ pkg-config wget make
+   sudo apt-get install unzip
    sudo add-apt-repository ppa:webupd8team/java
    sudo apt-get update
    sudo apt-get install oracle-java7-installer
@@ -140,34 +143,34 @@ install prerequisites
 install FastQC/0.11.2
 ::
 
-  cd ~
-  wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.2.zip
-  sudo apt-get install unzip
-  unzip fastqc_v0.11.2.zip
+  cd /usr/src/  
+  sudo wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.2.zip
+  sudo unzip fastqc_v0.11.2.zip
   cd FastQC
-  chmod 755 fastqc
-  sudo ln -s /home/ubuntu/FastQC/fastqc /usr/local/bin/fastqc
+  sudo chmod 755 fastqc
+  sudo ln -s /usr/src/FastQC/fastqc /usr/local/bin/fastqc
+  
      
 install Trimmomatic/0.32
 ::
    
-   cd ~
-   wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.32.zip
-   unzip Trimmomatic-0.32.zip
-   mv /home/ubuntu/Trimmomatic-0.32/trimmomatic-0.32.jar /home/ubuntu/Trimmomatic-0.32/trimmomatic
-   TRIM=$"/home/ubuntu/Trimmomatic-0.32"
+   cd /usr/src/
+   sudo wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.32.zip
+   sudo unzip Trimmomatic-0.32.zip
+   sudo mv /usr/src/Trimmomatic-0.32/trimmomatic-0.32.jar /usr/src/Trimmomatic-0.32/trimmomatic
+   TRIM=$"/usr/src/Trimmomatic-0.32"
    export TRIM
 
 
 install Bowtie/2.2.3.0
 ::
 
-   cd ~
-   wget http://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.2.3/bowtie2-2.2.3-source.zip
-   unzip bowtie2-2.2.3-source.zip
+   cd /usr/src/
+   sudo wget http://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.2.3/bowtie2-2.2.3-source.zip
+   sudo unzip bowtie2-2.2.3-source.zip
    cd bowtie2-2.2.3
-   make
-   PATH=$PATH:/home/ubuntu/bowtie2-2.2.3
+   sudo make
+   PATH=$PATH:/usr/src/bowtie2-2.2.3
    export PATH
 
 install TopHat2/2.0.13
@@ -176,7 +179,6 @@ install TopHat2/2.0.13
    cd /usr/src/
    sudo wget http://ccb.jhu.edu/software/tophat/downloads/tophat-2.0.13.Linux_x86_64.tar.gz
    sudo tar -zxvf tophat-2.0.13.Linux_x86_64.tar.gz
-   sudo rm tophat-2.0.13.Linux_x86_64.tar.gz
    cd /usr/bin
    sudo ln -s /usr/src/tophat-2.0.13.Linux_x86_64/tophat2 ./tophat
 
@@ -189,17 +191,21 @@ install samtools/0.1.19-1
 install HTSeq/0.6.1
 ::
 
-   cd ~
+   cd /usr/src/
    sudo apt-get install build-essential python2.7-dev python-numpy python-matplotlib
-   wget https://pypi.python.org/packages/source/H/HTSeq/HTSeq-0.6.1.tar.gz
-   tar -zxvf HTSeq-0.6.1.tar.gz
+   sudo wget https://pypi.python.org/packages/source/H/HTSeq/HTSeq-0.6.1.tar.gz
+   sudo tar -zxvf HTSeq-0.6.1.tar.gz
    cd HTSeq-0.6.1
-   python setup.py install --user
-   sudo cp .local/bin/* /usr/bin/.
+   sudo python setup.py install --user
+   PATH=$PATH:/home/ubuntu/.local/bin
+   export PATH
+   sudo chmod -R 755 ~/.local
+
 
 install PySam
 ::
    
+   cd ~
    sudo apt-get install python-pip
    sudo pip install pysam
    
@@ -208,10 +214,7 @@ Install GNU R core and the edgeR package
 
    cd ~
    sudo apt-get install r-base-core
-   echo "
-    source('http://bioconductor.org/biocLite.R')
-    biocLite('edgeR')" > install_edgeR.R
-   sudo Rscript install_edgeR.R
+   sudo Rscript -e "source('http://bioconductor.org/biocLite.R'); biocLite('edgeR');"
    
 install cufflinks/2.1.1  
 ::
@@ -219,7 +222,6 @@ install cufflinks/2.1.1
    cd /usr/src/
    sudo wget http://cole-trapnell-lab.github.io/cufflinks/assets/downloads/cufflinks-2.1.1.Linux_x86_64.tar.gz
    sudo tar -zxvf cufflinks-2.1.1.Linux_x86_64.tar.gz
-   sudo rm cufflinks-2.1.1.Linux_x86_64.tar.gz
    cd /usr/bin
    sudo ln -s /usr/src/cufflinks-2.1.1.Linux_x86_64/cufflinks .
    sudo ln -s /usr/src/cufflinks-2.1.1.Linux_x86_64/cuffmerge .
@@ -229,6 +231,9 @@ install cufflinks/2.1.1
    sudo ln -s /usr/src/cufflinks-2.1.1.Linux_x86_64/gtf_to_sam .
    
 install tmux
+::
+
+   cd ~
    sudo apt-get install tmux
    
 .. Install FastX/0.0.13.2::   

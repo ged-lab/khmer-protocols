@@ -126,6 +126,9 @@ Run FastQC again
    mkdir trimmedData_fastqc
    fastqc *.pe.fq.gz --outdir=$workingPath/trimmedData_fastqc
 
+
+Now you can dowload the output files and check for changes after Trimmomatic treatment
+
 .. * Does it matter that you still have adapters!?
 
 .. shell stop

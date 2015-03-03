@@ -58,9 +58,6 @@ Reference based RNAseq assembly: the refTrans Protocol
 
 This is a protocol for reference based transcriptome assembly. 
 Materials are based on two workshops given at MSU by Titus Brown and Matt Scholz on Dec 4/5 ad Dec 10/11. 
-Both workshops were sponsored by `iCER <http://icer.msu.edu/>`__ 
-and made use of the `MSU High Performance Compute Center <http://hpcc.msu.edu/>`__ .
-
 
 Additional information
 ----------------------
