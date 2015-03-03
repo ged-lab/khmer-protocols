@@ -20,7 +20,8 @@ for the latest released version.
    4-assemble
    5-mapping-and-quantitation
    6-annotating
-   installing-blastkit
+   7-quast-evaluation
+   8-installing-blastkit
 
 Reference material
 ------------------
