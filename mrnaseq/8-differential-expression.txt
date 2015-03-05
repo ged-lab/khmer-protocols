@@ -5,6 +5,8 @@
 
 .. ::
 
+   set -x
+   set -e
    export PATH=$PATH:/root/rsem-1.2.8
    echo 8-differential-expression START `date` >> /root/times.out
 
@@ -27,7 +29,7 @@
 .. note::
 
    If all you have is a genes.results file, you can recover the
-   *.fq.genes.results files by doing the following::
+   \*.fq.genes.results files by doing the following::
  
          python /usr/local/share/eel-pond/unpack-genes-matrix.py genes.results
 
