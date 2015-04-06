@@ -1,0 +1,90 @@
+==================
+3. Variant Calling
+==================
+
+To call SNPs in the mapped reads, we will be using SAMTools.
+
+Index the reference genome using SAMTools
+-----------------------------------------
+
+First, we need to generate index for the reference with samtools (this index is different than the one we generated using bowtie2-build):
+
+.. note::
+   samtools faidx <reference.fa>
+
+For our example, this will be:
+::
+ 
+   samtools faidx H37Rv.fa
+
+This generates a file 'H37Rv.fa.fai' in the current directory.
+
+Convert SAM to BAM format and sort & index the BAM file
+-------------------------------------------------------
+
+Lets generate the binary version of the SAM format, which takes less space and is accepted by tools for downstream analyses.
+
+.. note::
+   
+   samtools view -bt reference.fa.fai aln.sam > aln.bam
+
+For our example, this will be:
+:: 
+     
+   samtools view -bt H37Rv.fa.fai SRR671851_mapped.sam > SRR671851_mapped.bam
+
+Now lets sort and index the bam file:
+
+.. note::
+
+   samtools sort aln.bam aln.sorted
+   samtools index aln.sorted.bam
+
+The 'samtools sort' command creates a new file aln.sorted.bam, and the 'samtools index' indexes this aln.sorted.bam file and creates an index file aln.sorted.bam.bai.
+
+Lets run these commands for our example data:
+::
+
+   samtools sort SRR671851_mapped.bam SRR671851_mapped.sorted
+   samtools index SRR671851_mapped.sorted.bam
+
+'samtools idxstats' can be used to determine number of reads that mapped to the reference genome. For example:
+::
+
+   samtools idxstats SRR671851_mapped.sorted.bam
+
+outputs:
+gi|444893469|emb|AL123456.3|	4411532	195417	611
+*	0	0	1026
+
+where 'gi|444893469|emb|AL123456.3|' is reference name, 4411532 is reference genome length, 195417 is reads mapped to the reference, and 611 is the number of unmapped reads whose mate mapped to the reference. Other unmapped reads (orphans, or mates where both reads don't map) are output in second line (here, 1026 such reads). 
+
+Call SNPs
+---------
+
+SAMTools can be used to call variants in the mapped reads as follows:
+.. note::
+
+   samtools mpileup -uDgf ref.fa aln.bam | bcftools view -bvcg - > var.raw.bcf 
+   bcftools view var.raw.bcf > var.raw.vcf
+
+For our example, this will be:
+::
+
+   samtools mpileup -uDgf H37Rv.fa SRR671851_mapped.sorted.bam | bcftools view -bvcg - > var.raw.bcf
+   bcftools view var.raw.bcf > var.raw.vcf
+
+Mpileup looks at read bases that map to each position in the reference genome and thus can identify mismatches (SNPs), indels, and so forth. Bcftools calls variants from mpileup output by bayesian inference, and outputs only the variant sites in bcf format. 'bcf' is short for binary call format, and 'bcftools view' convert that to human-readable variant call format (vcf): this file contains the variant calls in the mapped reads. For our example, the var.raw.vcf looks like:
+
+.. note::
+   #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SRR671851_mapped.sorted.bam
+   gi|444893469|emb|AL123456.3|	1849	.	C	A	68	.	DP=3;VDB=6.363195e-02;AF1=1;AC1=2;DP4=0,0,2,1;MQ=37;FQ=-36	GT:PL:GQ	1/1:100,9,0:16
+gi|444893469|emb|AL123456.3|	1977	.	A	G	12.3	.	DP=1;AF1=1;AC1=2;DP4=0,0,0,1;MQ=42;FQ=-30	GT:PL:GQ	1/1:42,3,0:5
+
+1st column is reference genome (or chromosome), 2nd column is genome position, 4th column is the base in the reference genome, 5th column is the SNP bases separated by comma (a single SNP base in our example here).
+
+* Add more explanation of vcf format.
+
+Since we now have some candidate SNPs, lets annotate them!
+
+

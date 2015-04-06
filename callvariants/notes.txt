@@ -1,0 +1,7 @@
+1. Do it on Amazon.
+2. Use khmer to run trimmomatic script from sandbox
+3. Explain each option in a command line statement. Example: gunzip -c <filename> | fastq_quality_filter -Q33 -q 30 -p 50 | gzip -9c > <filename>.qc.fq.gz
+explain what Q33, -q, -p flags are.
+4. "Make sure you're running from screen". What does this mean? Terminal or html screen? Give an example.
+5. khmer, partitioning not needed for variant calling. Confirm.
+6. Try different mappers: bowtie, bowtie2, bwa (talk about which version 0.7 is buggy with samtools index file)

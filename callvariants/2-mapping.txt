@@ -1,0 +1,96 @@
+========================================
+2. Mapping reads to the reference genome
+========================================
+
+Index the reference genome
+--------------------------
+First step in mapping reads is to generate an index for the reference genome.
+
+The reference genome for our example is the Mycobacterium tuberculosis genome H37Rv. 
+
+.. shell start
+
+.. ::
+
+   set -x
+   set -e
+
+
+We will be using bowtie2 to map the reads to this reference genome. So lets index the reference genome using bowtie2-build.
+
+.. note::
+   bowtie2-build -f <reference_genome.fa> <basename>
+
+Copy your reference genome fasta file to the directory where your fastq files are (/data/) and also working directory (/mnt/work). Alternatively, you can create a new directory for the reference, build reference index (see below), and add this directory to the BOWTIE2_INDEXES environment variable.
+
+Create the index as follows:
+::
+
+   bowtie2-build -f H37Rv.fa H37Rv
+
+where, H37Rv is the basename that is now assigned to the index files. The reference index files created are:
+
+H37Rv.1.bt2  H37Rv.3.bt2  H37Rv.rev.2.bt2
+H37Rv.2.bt2  H37Rv.4.bt2  H37Rv.rev.1.bt2
+
+
+Link in your data
+-----------------
+
+Make sure your data is in /mnt/work/.  You can do::
+
+   cd /mnt
+   mkdir -p work
+   cd /mnt/work
+   ln -fs /data/*.qc.fq.gz .
+
+Map reads to genome
+-------------------
+
+Since we are using bowtie2, map the reads to the reference using this command:
+
+.. note::
+   
+   bowtie2 -x <reference_basename> -1 <'_1.pe.qc.fq' file> -2 <'_2.pe.qc.fq' file> -U <'.se.qc.fq' files> -S <SAM output file>
+
+First pair of the paired-end reads go after "-1" in a comma separated format, the second pair of paired-end reads go after "-2", and any unpaired/orphan reads go after "-U", again in comma separated format. The output SAM filename is provided after "-S". Notice that:
+
+1. The .fq.gz files have to be uncompressed to .fq. This can be done using 'gunzip -c '.fq.gz' > '.fq'. If your files are huge and you do not want to uncompress them, you can use zcat (short for gunzip -c) as follows:
+
+bowtie2 -x <reference_basename> -U <( zcat '.fq.gz' ) -S <outfile name>
+
+i.e., the .fq.gz filename should be replaced by '<( zcat .fq.gz )'.
+
+2. If you are supplying paired-end reads via flags "-1" and "-2", the number of reads in the paired files should be exactly the same.
+
+Lets run bowtie2 on our example dataset!
+
+::
+
+   bowtie2 -x H37Rv -1 SRR671851_1.pe.qc.fq -2 SRR671851_2.pe.qc.fq -U SRR671851_1.se.qc.fq,SRR671851_2.se.qc.fq -S SRR671851_mapped.sam
+
+Notice that the orphan .se.qc.fq files are supplied under the "unpaired" -U flag. I see the following output:
+
+99795 reads; of these:
+  97259 (97.46%) were paired; of these:
+    1844 (1.90%) aligned concordantly 0 times
+    93516 (96.15%) aligned concordantly exactly 1 time
+    1899 (1.95%) aligned concordantly >1 times
+    ----
+    1844 pairs aligned concordantly 0 times; of these:
+      481 (26.08%) aligned discordantly 1 time
+    ----
+    1363 pairs aligned 0 times concordantly or discordantly; of these:
+      2726 mates make up the pairs; of these:
+        1601 (58.73%) aligned 0 times
+        746 (27.37%) aligned exactly 1 time
+        379 (13.90%) aligned >1 times
+  2536 (2.54%) were unpaired; of these:
+    36 (1.42%) aligned 0 times
+    2402 (94.72%) aligned exactly 1 time
+    98 (3.86%) aligned >1 times
+99.17% overall alignment rate
+
+It looks like the reads mapped! Success! Now lets find out the SNPs in the mapped reads.
+
+Next stop: :doc:`3-variant-calling`.

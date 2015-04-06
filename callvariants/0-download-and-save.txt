@@ -1,0 +1,119 @@
+===========================================
+0. Downloading and Saving Your Initial Data
+===========================================
+
+We're going to do variant calling completely in the cloud,
+because that way (a) you don't need to buy a big computer, and (b)
+I don't have to figure out all the special details of your own
+computer system.
+
+This does mean that the first thing you need to do is get your data
+over to the cloud.  I tend to just store it there in the first place,
+because...
+
+The basics
+----------
+
+... Amazon is happy to rent disk space to you, in addition to compute time.
+They'll rent you disk space in a few different ways, but the way that's
+most useful for us is through what's called Elastic Block Store.  This
+is essentially a hard-disk rental service. 
+
+There are two basic concepts -- "volume" and "snapshot". A "volume" can
+be thought of as a pluggable-in hard drive: you create an empty volume of
+a given size, attach it to a running instance, and voila! You have extra
+hard disk space.  Volume-based hard disks have two problems, however:
+first, they cannot be used outside of the "availability zone" they've
+been created in, which means that you need to be careful to put them
+in the same zone that your instance is running in; and they can't be shared
+amongst people.
+
+Snapshots, the second concept, are the solution to transporting and
+sharing the data on volumes.  A "snapshot" is essentially a frozen
+copy of your volume; you can copy a volume into a snapshot, and a
+snapshot into a volume.
+
+Getting started
+---------------
+
+Run through :doc:`../amazon/index` once, to get the hang of
+the mechanics.  Essentially you create a disk; attach it; format it; copy things
+to and from it.
+
+Downloading and saving your data to a volume
+--------------------------------------------
+
+There are *many* different ways of getting big sequence files to and
+from Amazon.  The two that I mostly use are 'curl', which downloads
+files from a Web site URL; and 'ncftp', which is a robust FTP client
+that let's you get files from an FTP site.  Sequencing centers almost
+always make their data available in one of these two ways.
+
+.. note::
+
+   To use ncftp on your Amazon instance, you may need to install it::
+
+      apt-get -y install ncftp
+
+For example, to retrieve a file from an FTP site, you would do something
+like::
+
+   cd /mnt
+   ncftp -u <username> ftp://path/to/FTP/site
+
+use 'cd' to find the right directory, and then::
+
+   >> mget *
+
+to download the files.  Then type 'quit'.  
+
+You can also use 'curl' to download files one at a time from Web or FTP sites.
+For example, to save a file from a website, you could use::
+
+   cd /mnt
+   curl -O http://path/to/file/on/website
+
+Once you have the files, figure out their size using 'du -sk' (e.g. after the
+above, 'du -sk /mnt' will tell you how much data you have saved under /mnt),
+and go create and attach a volume (see :doc:`../amazon/index`).
+
+Any files in the '/mnt' directory will be lost when the instance is stopped or
+rebooted. However, files stored in the root, '/', directory will remain
+available. Thus, it's a good rule of thumb to do "savepoints" -- whenever you
+complete a big chunk of work, think about saving the data at that point.  I've
+broken the mRNAseq tutorial down into chunks of work whereyou can do this --
+after each Web page, basically. To sync a folder to attached volume simply
+type::
+
+   rsync -av folder_to_keep /path_to_volume
+
+Some test data
+--------------
+
+Several journals require that the Illumina sequencing data accompanying a publication should be deposited in publicly available libraries such as Sequence Read Archive (SRA).
+Lets use one of the datasets from SRA as our test data. The data can be downloaded using the ftp link ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/read
+s/ByExp/litesra/SRX/SRX225/SRX225038/SRR671724/SRR671724.lite.sra. To get fastq files from sra file, you'd need to install SRAToolkit from http://www.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=software, and use fastq-dump function in the toolkit.
+
+Alternatively, the fastq files can be downloaded directly from European Nucleotide Archive. The paired files are ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR671/SRR671851/SRR671851_2.fastq.gz, and ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR671/SRR671851/SRR671851_1.fastq.gz.
+
+* ASK: can you use wget on Amazon? If yes, add wget lines for the above two ftp files.
+
+Lets make a new directory to store data:
+::
+
+   mkdir data
+   cd data
+   wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR671/SRR671851/SRR671851_1.fastq.gz
+   wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR671/SRR671851/SRR671851_2.fastq.gz
+
+This dataset contains paired-end Illumina HiSeq data from a clinical isolate of Mycobacterium tuberculosis. The paper is: Zhang et al 2013. Genome sequencing of 161 Mycobacterium tuberculosis isolates from China identifies genes and intergenic regions associated with drug resistance. Nature Genetics, http://dx.doi.org/10.1038/ng.2735.
+
+Additional information
+----------------------
+
+Throughout this protocol we will be using commandline interfaces. There
+is a short document explaining the notations used here. (see :doc:`../docs/command-line`)
+
+----
+
+Next: :doc:`1-quality`
