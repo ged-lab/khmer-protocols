@@ -96,7 +96,7 @@ google to figure out what each package is and does if we don't discuss
 it below.  We're then unpacking it, sometimes compiling it (which we
 can discuss later), and then installing it for general use.
 
-* ASK: what is ibgtextutils for?
+* ASK: what is libgtextutils for?
 
 Find your data
 --------------
@@ -117,22 +117,22 @@ find them but doesn't need to actually move them around. :
    mkdir -p work
    cd work
    
-   ln -fs /data/*.fastq.gz .
+   ln -fs ../data/* .
 
-(The 'ln' command does the linking.)
+(The 'ln' command does the linking, and should be provided the full path for the data directory.)
 
-Now, do an 'ls' to list the files.  If you see only one entry, ``*.fastq.gz``,
+Now, do an 'ls' to list the files.  If you don't see all the files in data directory,
 then the ln command above didn't work properly.  One possibility is that
-your files aren't in /data; another is that they're not named *.fastq.gz.
+your files aren't in ../data. This will link all the files in ../data (*.fastq.gz and the reference genome). 
 
 .. note::
 
    This protocol takes many hours to run, so you might not want
    to run it on all the data the first time.  If you're using the
    example data, you can work with a subset of it by running this command
-   instead of the `ln -fs` command above::
+   INSTEAD of the `ln -fs` command above (you should be in the 'work' directory)::
 
-      for file in /data/*.fastq.gz
+      for file in ../data/*.fastq.gz
       do
           gunzip -c $file | head -400000 | gzip > $(basename $file)
       done
@@ -140,17 +140,49 @@ your files aren't in /data; another is that they're not named *.fastq.gz.
    This will pull out the first 100,000 reads of each file (4 lines per record)
    and put them in the current directory, which should be /mnt/work.
 
-OPTIONAL: Evaluate the quality of your files with FastQC
---------------------------------------------------------
+If you follow the above option (copying only first 100,000 reads to the 'work' directory), you should link the reference genome that is in the 'data' directory:
 
-If you installed Dropbox, we can use FastQC to look at the quality of your sequences::
+::
 
-   mkdir /home/ubuntu/Dropbox/fastqc
-   /usr/local/share/FastQC/fastqc <.fastq.gz file> --outdir=/home/ubuntu/Dropbox/fastqc
+      ln -fs ../data/NC_018143.fna
 
-The output will be placed under the 'fastqc' directory in your Dropbox
-on your local computer; look for the fastqc_report.html files, and
-double click on them to load them into your browser.
+For this example, lets stick to the option of using the first 100,000 reads. The 'ls' command in the current work directory should now list these three files:
+
+NC_018143.fna  SRR671851_1.fastq.gz  SRR671851_2.fastq.gz
+
+Evaluate the quality of your files with FastQC
+----------------------------------------------
+
+Lets use FastQC to look at the quality of your sequences::
+
+::
+
+      mkdir fastqc_output
+      for file in ./*.fastq.gz
+      do
+	      fastqc $file --outdir=fastqc_output
+      done
+
+In mnt/work/fastqc_output/, you should now have the following files:
+
+SRR671851_1_fastqc.html  SRR671851_1_fastqc.zip  SRR671851_2_fastqc.html  SRR671851_2_fastqc.zip
+       
+Double click on the *.html files to load them into your browser. For our example, the fastqc html reports look like this:
+
+.. image:: fastqc_screenshot_raw_1.png
+   :scale: 50 %
+   :alt: SRR671851_1_fastqc
+   :align: left
+
+
+.. image:: fastqc_screenshot_raw_2.png
+   :scale: 50 %
+   :alt: SRR671851_2_fastqc
+   :align: left
+
+As you can see, the base quality (on the y-axis) decreases towards the end of the read, more so in the second read of the pair. To fix this, you can trim the read so as to exclude the poor-quality ends. Base-quality of more than 28 (the green portion in the plot) is a good threshold to decide the length of reads to keep.
+
+Based on the quality control analysis, we will trim the reads to length 60. But first, we should first remove the Illumina adapters (short nucleotide sequences added prior to sequencing).
 
 Find the right Illumina adapters
 --------------------------------
@@ -177,22 +209,26 @@ Adapter trim each pair of files
 screen, so that you detach and log out while it's running; see
 :doc:`../amazon/using-screen` for more information.)
 
-The files containing paired-end reads are labled as <prefix>_1.fastq.gz and <prefix>_2.fastq.gz. The <prefix> should briefly describe the file and be exactly same for the paired read files.
+The files containing paired-end reads are labled as <prefix>_1.fastq.gz and <prefix>_2.fastq.gz. The <prefix> briefly describes the file (or is an ID, for example "SRR671851" in our case) and is exactly same for the paired read files.
 
-For *each* of these pairs, run the following::
+For *each* of these pairs, do the following:
+
+* ASK: where would Illumina adapters be for a person trying this for the first time.
+
+::
 
    # make a temp directory
    mkdir trim
    cd trim
 
    # run trimmomatic
-   java -jar /usr/local/bin/trimmomatic-0.30.jar PE <'_1.fastq.gz' FILE> <'_2.fastq.gz' FILE> s1_pe s1_se s2_pe s2_se ILLUMINACLIP:/usr/local/share/adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:20:30 AVGQUAL:28
+   java -jar /usr/local/bin/trimmomatic-0.30.jar PE ../SRR671851_1.fastq.gz ../SRR671851_2.fastq.gz s1_pe s1_se s2_pe s2_se ILLUMINACLIP:/usr/local/share/adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:20:30 AVGQUAL:28
 
    # compress the files and save it in the working directory
-   gzip -9c s1_pe > ../<prefix>_1.pe.fq.gz
-   gzip -9c s1_se > ../<prefix>_1.se.fq.gz
-   gzip -9c s2_pe > ../<prefix>_2.pe.fq.gz
-   gzip -9c s2_se > ../<prefix>_2.se.fq.gz
+   gzip -9c s1_pe > ../SRR671851_1.pe.fq.gz
+   gzip -9c s1_se > ../SRR671851_1.se.fq.gz
+   gzip -9c s2_pe > ../SRR671851_2.pe.fq.gz
+   gzip -9c s2_se > ../SRR671851_2.se.fq.gz
 
    # go back up to the working directory and remove the temp directory
    cd ..
@@ -208,53 +244,43 @@ above, but, briefly, this set of commands:
 
 * runs 'Trimmomatic' in that directory to trim off the adapters, and then
   puts remaining pairs (most of them!) in s1_pe and s2_pe, and any orphaned
-  singletons in s1_se and s2_se.
+  singletons in s1_se and s2_se. 's1' and 's2' are short for 1st and 2nd read of a pair, 'pe' stands for paired-reads, and 'se' stands for singleton reads.
 
 * 'Trimmomatic' also does a 'sliding window trimming approach' (optional): if the quality in window of 20 drops below average score of 30, then the read is trimmed. AVGQUAL is the average quality score below which the read is dropped. LEADING and TRAILING are the number of bases to be trimmed from beginning and end of reads respectively, if the quality score drops below threshold (here, 30). Using 'Trimmomatic' to do quality control ensures that the number of paired reads in s1_pe and s2_pe are same: if any one read in a pair is dropped due to poor quality, its pair is considered as an orphan. This is important becuase several downstream tools (such as mappers) require that the number of reads in paired-end files be exactly the same. 
 
 * Puts the trimmed reads back in the working directory
 
+Running trimmomatic gave the following (last two lines of output):
+
+.. note::
+   Input Read Pairs: 100000 Both Surviving: 97259 (97.26%) Forward Only Surviving: 1908 (1.91%) Reverse Only Surviving: 628 (0.63%) Dropped: 205 (0.20%)
+   TrimmomaticPE: Completed successfully
+
+This means that of the 100,000 reads, 97.26% paired-reads survived the trimmomatic quality-control, 1.91% reads lost the 2nd read of the pair, 0.63% lost the 1st read of the pair, and 0.20% pairs were dropped.
+
 At the end of this you will have new files ending in '.pe.fq.gz' and
-'.se.fq.gz', representing the paired and orphaned quality trimmed
+'.se.fq.gz', representing the paired and orphaned adapter trimmed
 reads, respectively.
 
-Evaluate the quality of your files with FastQC
-----------------------------------------------
-
-Use FastQC to look at the quality of your newly-trimmed sequences::
-
-   mkdir /home/ubuntu/Dropbox/fastqc
-   /usr/local/share/FastQC/fastqc <'.fq.gz file> --outdir=/home/ubuntu/Dropbox/fastqc
-
-Again, the output will be placed under the 'fastqc' directory in your
-Dropbox on your local computer; look for the fastqc_report.html files,
-and double click on them to load them into your browser. FastQC also outputs additional files in *_fastqc.zip, where * is the input file ('.fq.gz') name.
-
-You may notice that the reads have low quality-scores in the 'Per base sequence quality' in the '.fq.gz_fastqc.html', especially in the second pair of the paired-end reads. It is a good idea to trim the reads to remove poor-quality ends. 
-
-* Add snapshots of fastqc screens, before and after trimming, using the snapshots from this very example.
-
-Automating this step 
-~~~~~~~~~~~~~~~~~~~~
-
-If you have several files to run FastQC on, you can unzip the '_fastqc.zip' files, and look for 'summary.txt' file in the unzipped folders. If you see 'FAIL' or 'WARN' next to 'Per base sequence quality' in this 'summary.txt', it is a good idea to look at the '_fastqc.html' files individually and trim the ends, or decide if the data quality isn't good enough for downstream analyses, and if not, you may not want to use that file. 
-
-A simple script can be written to identify the .fq.gz files that FAIL the 'Per base sequence quality' test, and will narrow down the number of FastQC html reports to look at.
-
-Quality trim each pair of files
--------------------------------
+Quality trim your reads: dropping the low-quality ends
+------------------------------------------------------
 
 If you are following this example, you should have a bunch of '.pe.fq.gz' files and
-a bunch of '.se.fq.gz' files, and html FastQC reports assessing the quality of data in these files. If your fastq files need trimming, do the following ::
+a bunch of '.se.fq.gz' files, and html FastQC reports to determine the quality of data in these files. If your individual fastq files need trimming, use the following syntax:
 
 	gunzip -c <'.fq.gz' file> | fastx_trimmer -l <length to keep> -z -o <'.qc.fq.gz' outfile>
 
 This first uncompresses the .fq.gz files, trims the reads to specified length, and -z compresses output with gzip.
 
+.. note::
+	If you have several files to run FastQC on, you can unzip the '_fastqc.zip' files, and look for 'summary.txt' file in the unzipped folders. If you see 'FAIL' or 'WARN' next to 'Per base sequence quality' in this 'summary.txt', it is a good idea to look at the '_fastqc.html' files individually and trim the ends, or decide if the data quality isn't good enough for downstream analyses, and if not, you may not want to use that file. 
+	
+	A simple script can be written to identify the .fq.gz files that FAIL the 'Per base sequence quality' test, and will narrow down the number of FastQC html reports to look at.
+
 Automating this step
 ~~~~~~~~~~~~~~~~~~~~
 
-If all .fq.gz files need trimming, do the following: 
+If all .fq.gz files need trimming (as we will in this example), do the following: 
 
 .. ::
 
@@ -267,8 +293,7 @@ This step can be automated with a 'for' loop at the shell prompt.  Try :
    do
         echo working with $file
         newfile="$(basename $file .fq.gz)"
-        gunzip -c $file | fastx_trimmer -l <length to keep> | gzip -9c \
-            > "${newfile}.qc.fq.gz"
+        gunzip -c $file | fastx_trimmer -l 60 | gzip -9c > "${newfile}.qc.fq.gz"
    done
 
 What this loop does is:
@@ -280,11 +305,54 @@ What this loop does is:
 * uncompresses the original file, passes it through fastx_trimmer, recompresses it,
   and saves it as 'newfile'.qc.fq.gz
 
+Re-evaluate the quality of your files with FastQC
+-------------------------------------------------
+
+Since we did quality-control using Trimmomatic and dropped low-quality ends of reads, lets re-run fastqc to confirm that the data is now good enough for downstream analysis.
+
+::
+
+	  for file in *.qc.fq.gz
+      do
+	      fastqc $file --outdir=fastqc_output
+      done
+
+This will generate *.qc.fq_fastqc.html files in the fastqc_output directory.
+
+SRR671851_1.pe.qc.fq_fastqc.html:
+
+.. image:: fastqc_qc_1_pe.png
+   :scale: 50 %
+   :alt: fastqc_qc_1_pe
+   :align: left
+
+SRR671851_1.se.qc.fq_fastqc.html
+
+.. image:: fastqc_qc_1_se.png
+   :scale: 50 %
+   :alt: fastqc_qc_1_se.png
+   :align: left
+
+SRR671851_2.pe.qc.fq_fastqc.html
+
+.. image:: fastqc_qc_2_pe.png
+   :scale: 50 %
+   :alt: fastqc_qc_2_pe
+   :align: left
+
+SRR671851_2.se.qc.fq_fastqc.html
+
+.. image:: fastqc_qc_2_se.png
+   :scale: 50 %
+   :alt: fastqc_qc_2_se.png
+   :align: left
+
+The data now looks good (base-quality scores for all four files lie in the green region)! 
 
 Finishing up
 ------------
 
-You should now have a bunch of files:
+You should now have a bunch of files in the working directory:
 
    *_1.fastq.gz 	      	 		     - the original data
    *_2.fastq.gz
@@ -322,31 +390,19 @@ And finally, make the end product files read-only :
 
 to make sure you don't accidentally delete something.
 
-OPTIONAL: Evaluate the quality of your files with FastQC again
---------------------------------------------------------------
-
-We can once again use FastQC to look at the quality of your newly-trimmed sequences::
-
-   mkdir /home/ubuntu/Dropbox/fastqc
-   /usr/local/share/FastQC/fastqc *.qc.fq.gz --outdir=/home/ubuntu/Dropbox/fastqc
-
-Again, the output will be placed under the 'fastqc' directory in your
-Dropbox on your local computer; look for the fastqc_report.html files,
-and double click on them to load them into your browser.
-
 Saving the files
 ----------------
 
 At this point, you should save these files::
 
    mkdir save
-   mv *.qc.fq.gz save
+   cp *.qc.fq.gz save
    du -sk save
 
-If you are running with a data subset for a workshop, do
+If you are running with a data subset (as in this example), do
 ::
 
-   cp /mnt/work/*.qc.fq.gz /data
+   cp /mnt/work/*.qc.fq.gz ../data
 
 to save the QC files for later use.
 

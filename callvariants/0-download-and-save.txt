@@ -96,7 +96,6 @@ s/ByExp/litesra/SRX/SRX225/SRX225038/SRR671724/SRR671724.lite.sra. To get fastq 
 
 Alternatively, the fastq files can be downloaded directly from European Nucleotide Archive. The paired files are ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR671/SRR671851/SRR671851_2.fastq.gz, and ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR671/SRR671851/SRR671851_1.fastq.gz.
 
-* ASK: can you use wget on Amazon? If yes, add wget lines for the above two ftp files.
 
 Lets make a new directory to store data:
 ::
@@ -108,6 +107,11 @@ Lets make a new directory to store data:
 
 This dataset contains paired-end Illumina HiSeq data from a clinical isolate of Mycobacterium tuberculosis. The paper is: Zhang et al 2013. Genome sequencing of 161 Mycobacterium tuberculosis isolates from China identifies genes and intergenic regions associated with drug resistance. Nature Genetics, http://dx.doi.org/10.1038/ng.2735.
 
+Now lets save the reference genome for Mycobacterium tuberculosis from NCBI:
+::
+
+   wget ftp://ftp.ncbi.nih.gov/genomes/Bacteria/Mycobacterium_tuberculosis_H37Rv_uid170532/NC_018143.fna
+   
 Additional information
 ----------------------
 

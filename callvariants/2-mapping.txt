@@ -4,9 +4,9 @@
 
 Index the reference genome
 --------------------------
-First step in mapping reads is to generate an index for the reference genome.
+First step in mapping reads is to generate an index for the reference genome. Note that we are still in 'work' directory.
 
-The reference genome for our example is the Mycobacterium tuberculosis genome H37Rv. 
+The reference genome for our example is the Mycobacterium tuberculosis genome H37Rv. The fasta file for this genome is NC_018143.fna, that we "linked" to our 'work' directory.
 
 .. shell start
 
@@ -21,14 +21,13 @@ We will be using bowtie2 to map the reads to this reference genome. So lets inde
 .. note::
    bowtie2-build -f <reference_genome.fa> <basename>
 
-Copy your reference genome fasta file to the directory where your fastq files are (/data/) and also working directory (/mnt/work). Alternatively, you can create a new directory for the reference, build reference index (see below), and add this directory to the BOWTIE2_INDEXES environment variable.
 
 Create the index as follows:
 ::
 
-   bowtie2-build -f H37Rv.fa H37Rv
+   bowtie2-build -f NC_018143.fna H37Rv
 
-where, H37Rv is the basename that is now assigned to the index files. The reference index files created are:
+where, H37Rv is the basename that is now assigned to the index files. The reference index files created in the 'work' directory are:
 
 H37Rv.1.bt2  H37Rv.3.bt2  H37Rv.rev.2.bt2
 H37Rv.2.bt2  H37Rv.4.bt2  H37Rv.rev.1.bt2
@@ -43,6 +42,8 @@ Make sure your data is in /mnt/work/.  You can do::
    mkdir -p work
    cd /mnt/work
    ln -fs /data/*.qc.fq.gz .
+
+If you are following this example, then your files should already be in 'work'.
 
 Map reads to genome
 -------------------
