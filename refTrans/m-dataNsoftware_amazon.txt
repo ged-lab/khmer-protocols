@@ -84,7 +84,7 @@ You need an SSH client to conect from you own computer to the Amazon instance yo
      NAME    MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
      xvda    202:0    0   8G  0 disk
      └─xvda1 202:1    0   8G  0 part /
-     xvdb    202:16   0   1G  0 disk
+     xvdf    202:16   0   1G  0 disk
 
         
  | /dev/xvda1 is mounted as the root device (note the MOUNTPOINT is listed as /, the root of the Linux file system hierarchy), and 

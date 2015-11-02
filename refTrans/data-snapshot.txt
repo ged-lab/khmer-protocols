@@ -20,7 +20,7 @@ We will follow up the main events and highlight the critical points:
        4. Choose an Amazon Machine Image (AMI): Ubuntu Server 14.04 LTS (HVM), SSD Volume Type - ami-9a562df2
        5. Choose an Instance Type: for now I am using the free tier t2.micro instance
        6. Next: Configure Instance Details: Keep the defaults
-       7. **Next: Add Storage**: Keep the defualt storage with 8 GiB as it is and add new EBS volume of 1 GiB general purpose SSD type (to dreate data snapshot on it). Make sure it does not delete after termination
+       7. **Next: Add Storage**: Keep the defualt storage with 8 GiB as it is and add new EBS volume of 1 GiB general purpose SSD type (to create data snapshot on it). Make sure it does not delete after termination
        8. Next: Tag instance: give a name to your instance (I called mine refTrans_instance)
        9. Next: Configure Security Group: Create a new security group and adjust your security rules to enable ports 22, 80, and 443 (SSH, HTTP, and HTTPS).
        10. click "review and lunch" the click "lunch"
@@ -105,16 +105,16 @@ Prepare the working data on the EBS volume
     NAME    MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
     xvda    202:0    0   8G  0 disk
     └─xvda1 202:1    0   8G  0 part /
-    xvdb    202:16   0   1G  0 disk
+    xvdf    202:16   0   1G  0 disk
 
         
  |   /dev/xvda1 is mounted as the root device (note the MOUNTPOINT is listed as /, the root of the Linux file system hierarchy),
- |   and /dev/xvdb is attached, but it has not been mounted yet.
+ |   and /dev/xvdf is attached, but it has not been mounted yet.
        
 2. New volume does not have a file system. Use the sudo file -s device command to double check 
  ::
            
-    sudo file -s /dev/xvdb
+    sudo file -s /dev/xvdf
 
 
    If the output of the previous command shows simply data for the device, then there is no file system on the device and you need to create one. 
@@ -122,7 +122,7 @@ Prepare the working data on the EBS volume
 3. Create an ext4 file system on the volume 
  ::
     
-    sudo mkfs -t ext4 /dev/xvdb
+    sudo mkfs -t ext4 /dev/xvdf
        
 4. Create a mounting point  directory for the volume. The mount point is where the volume is located in the file system tree and where you read and write files to after you mount the volume
  ::
@@ -132,7 +132,7 @@ Prepare the working data on the EBS volume
 5. Mount the volume at the location of the project folder
  ::
     
-    sudo mount /dev/xvdb refTransData/dataSubset
+    sudo mount /dev/xvdf refTransData/dataSubset
 
 6. Copy in a subset of the data (100,000 reads)
  ::
@@ -163,6 +163,7 @@ Follow the `Amazon documenation <http://docs.aws.amazon.com/cli/latest/userguide
  ::
    
     cd ~
+    sudo apt-get update
     sudo apt-get install awscli  
    
 3. configure credentials by running
@@ -181,7 +182,7 @@ Follow the `Amazon documenation <http://docs.aws.amazon.com/cli/latest/userguide
 4. Create a snapshot (get the volume-id from the EC2 dashboard in the volums tab)
  ::
     
-    sudo umount -d /dev/xvdb
+    sudo umount -d /dev/xvdf
     aws ec2 create-snapshot --volume-id vol-90ab2b8b --description "refTrans sample data"
    
  The snapshot has an ID: snap-6a5ddae5
