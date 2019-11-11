@@ -1,0 +1,81 @@
+Counting the reads that map to each gene
+========================================
+
+.. shell start
+
+Now that we know which reads go with which gene, we'll use
+`htseq-count <http://www-huber.embl.de/users/anders/HTSeq/doc/count.html>`__.
+
+.. note:: This section reuires PySAM/0.6 and HTSeq/0.6.1 installed
+
+HTSeq can not deal with BAM files containing mix of paired end and single end reads.
+So we need to split each BAM file according to the type of reads. `Samtools 
+<http://samtools.sourceforge.net/samtools.shtml>`__ can do this job for us using 
+the view command. Paire end reads are labeled with FLAG=1 so we can separate the 
+paired reads using the (-f) option which will *keep* only reads labeled with FALG=1.
+Also we can get the single end reads in a smilliar way but using (-F) option 
+which will *exclude* reads labeled with FALG=1.   
+
+Let us do this for all the BAM files
+::
+
+   for f in *_tophat; do
+        printf $f"\n"
+        samtools view -f 1 -bh -o "$f"/accepted_hits_PE.bam "$f"/accepted_hits.bam
+        samtools view -F 1 -bh -o "$f"/accepted_hits_SE.bam "$f"/accepted_hits.bam 
+   done
+
+Second preparatory step is to sort the paired end BAM files by name. You do not have to 
+but HTSeq might through an error if you are using a huge BAM file.
+::
+
+   for f in *_tophat; do
+        printf $f"\n"
+        samtools sort -n $f/accepted_hits_PE.bam $f/accepted_hits_PE2
+   done
+
+And next, run HTSeq
+::
+   
+   for f in *_tophat; do
+        output_PE=$(basename "$f" | cut -f 1,2 -d "_")_PEcounts.txt
+        printf $output_PE"\n"
+    
+        htseq-count --format=bam --stranded=no --order=name \
+            $f/accepted_hits_PE2.bam \
+            $GTF_file > $f/$output_PE
+        
+        output_SE=$(basename "$f" | cut -f 1,2 -d "_")_SEcounts.txt
+        printf $output_SE"\n"
+        htseq-count --format=bam --stranded=no --order=name \
+            $f/accepted_hits_SE.bam \
+            $GTF_file > $f/$output_SE
+   done
+
+When this is done, let us view one of the output file::
+
+   less salivary_repl1_tophat/salivary_repl1_PEcounts.txt
+
+(use 'q' to exit).  These are your gene counts.
+
+Final step will be summing the reads from both PE and SE analysis
+::
+
+   for f in *_tophat; do
+        paste $f/*counts.txt | cut -f1,2,4 > $f/combined_temp.txt
+        cat $f/combined_temp.txt | awk '{print $2+$3}' > $f/total_temp.txt
+        paste $f/combined_temp.txt $f/total_temp.txt | cut -f1,4 > $f/total_count.txt
+        rm $f/*_temp.txt
+   done 
+
+Note, these are *raw* gene counts - the number of reads that map to
+each feature (gene, in this case).  They are not normalized by length
+of gene. According to `this post on seqanswers
+<http://seqanswers.com/forums/archive/index.php/t-9998.html>`__, both
+DEseq and edgeR want exactly this kind of information!
+
+.. shell stop
+
+----
+
+Next: :doc:`m-edgeR`

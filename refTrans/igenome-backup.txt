@@ -1,0 +1,70 @@
+Storage of my iGenome tarball in the Amazon S3
+==============================================
+
+Connect to MSU HPC and get a copy of the Bowtie2Index, genome and gtf annotation
+--------------------------------------------------------------------------------
+After I logged into my AWS instance, I opened sftp connection with MSU HPC 
+and got the file I already prepared there in this way:: 
+
+   sftp (username)@hpc.msu.edu   
+   get /path/to/Homo_sapiens_UCSC_hg19_small.tar.gz
+   exit
+
+Create S3 bucket
+----------------
+In the AWS managmenet consol:
+       1. Click S3 (Amazon simple storage service)
+       2. Create Bucket
+       3. Define the Bucket Name: reftransdata (Choose the Region: US Standard)
+       
+Getting Set Up with the AWS Command Line Interface and copy a backup to S3 
+--------------------------------------------------------------------------
+The AWS Command Line Interface is a unified tool to manage your AWS services. It will help us making a snapshot of our data and a lot more
+Follow the `Amazon documenation <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-set-up.html#cli-signup>`__. Briefly:
+
+1. Get your access key ID and secret access key through `IAM console <https://console.aws.amazon.com/iam/home?#home>`__.
+Do not forget to add adminstrative access role
+
+2. install AWS Command Line Interface
+::
+   
+   cd ~
+   sudo apt-get install awscli  
+   
+3. configure credentials by running
+::
+
+  aws configure
+  
+|  The AWS CLI will prompt you for four pieces of information::
+
+   AWS Access Key ID [None]: You got it from IAM console, it should be something like AKIAIOSFODNN7EXAMPLE
+   AWS Secret Access Key [None]: You got it from IAM console, it should be something like wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+   Default region name [None]: This is the region of your bucket (in our case it is us-east-1)
+   Default output format [None]: json
+
+  
+4. copy the tarball to your S3 space
+::
+
+   aws s3 cp $workingPath/Homo_sapiens_UCSC_hg19_small.tar.gz s3://reftransdata/Homo_sapiens_UCSC_hg19_small.tar.gz
+   
+.. Go to S3 consol and right click the file and choose "make it public"
+
+
+Get a copy back from your S3 to the current EC2
+-----------------------------------------------
+Install and configure the AWS Command Line Interface then copy the file to the current working directory
+
+::
+
+   aws s3 cp s3://reftransdata/Homo_sapiens_UCSC_hg19_small.tar.gz
+   
+
+open the file and change name to match the one obtained from igenome
+--------------------------------------------------------------------
+::
+
+   tar -zxvf Homo_sapiens_UCSC_hg19_small.tar.gz
+   mv Homo_sapiens2 Homo_sapiens
+

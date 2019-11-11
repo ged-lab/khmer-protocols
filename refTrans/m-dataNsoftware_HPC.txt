@@ -1,0 +1,172 @@
+High Performance Computaters
+============================
+
+.. shell start
+
+Log into HPC
+------------
+
+Log into the HPC with SSH:: 
+
+   ssh <MSU NetID>@hpc.msu.edu
+   
+use your MSU NetID and log into the machine 'gateway.hpcc.msu.edu'.  
+
+Then log into a compute node e.g. dev-intel14-phi::
+
+   ssh dev-intel14-phi
+
+
+Assign the working directory
+----------------------------
+Assign the path of your working directory to a ageneric variable::
+   
+   workingPath=$"<path/to/your/working/directory>"
+   export workingPath
+   
+.. ::
+
+   workingPath=$"/mnt/ls12/Tamer/refTransProject/"
+   export workingPath
+
+
+Getting the data
+----------------
+
+We'll be using a few RNAseq data sets from Fagerberg et al., `Analysis
+of the Human Tissue-specific Expression by Genome-wide Integration of
+Transcriptomics and Antibody-based Proteomics
+<http://www.mcponline.org/content/13/2/397.full>`__.
+
+You can get this data from the European Nucleotide Archive under
+`ERP003613 <http://www.ebi.ac.uk/ena/data/view/ERP003613>`. 
+All samples in this project are `paired end 
+<http://www.illumina.com/technology/next-generation-sequencing/paired-end-sequencing_assay.html>`__ . 
+So each sample is represented by 2 files. These files are in 
+`FASTQ Format <http://en.wikipedia.org/wiki/FASTQ_format>`__ .
+
+
+In this tutorial we will work with two tissues: `salivary gland
+<http://www.ebi.ac.uk/ena/data/view/SAMEA2151887>`__ and `lung
+<http://www.ebi.ac.uk/ena/data/view/SAMEA2155770>`__.  Note that each
+tissue has two replicates, and each replicate has two files for the paired end reads
+
+.. check if the data directory exists
+.. ::
+
+   if [ ! -d "$workingPath/refTransData" ]; then
+
+make a directory to host the data on the HPC
+::
+
+        mkdir $workingPath/refTransData
+        cd $workingPath/refTransData
+   
+Download the sequencing files of the salivary gland
+::
+
+        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR315/ERR315325/*
+        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR315/ERR315382/*
+   
+Download the sequencing files of the lung tissue
+::
+
+        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR315/ERR315326/*
+        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR315/ERR315424/*
+
+
+.. ::
+
+   fi
+
+Now do::
+
+   ls -la $workingPath/refTransData/
+
+You'll see something like ::
+
+   -r--r--r-- 1 mscholz common-data 3714262571 Dec  4 08:44 ERR315325_1.fastq.gz
+   -r--r--r-- 1 mscholz common-data 3714262571 Dec  4 08:44 ERR315325_2.fastq.gz
+   ...
+   
+which tells you that this file is about 900 MB. You can go a head and use these files 
+for the reset of the protocl. But for the sake of time (& memory), we will run our demo 
+on a subset of this dat  
+
+Copying in some data to work with
+---------------------------------
+These data files are too big and will take us hours and hourse for analysis. So let us make it simple.
+We will create smaller files but getting only the first 100000 reads.
+
+.. check if the subset data directory exists
+.. ::
+
+   if [ ! -d "./dataSubset" ]; then
+
+First, make a directory
+::
+
+        mkdir ./dataSubset
+
+Copy in a subset of the data (100,000 reads)
+::
+
+        gunzip -c ERR315325_1.fastq.gz | head -400000 | gzip > dataSubset/salivary_repl1_R1.fq.gz
+        gunzip -c ERR315325_2.fastq.gz | head -400000 | gzip > dataSubset/salivary_repl1_R2.fq.gz
+        gunzip -c ERR315382_1.fastq.gz | head -400000 | gzip > dataSubset/salivary_repl2_R1.fq.gz
+        gunzip -c ERR315382_2.fastq.gz | head -400000 | gzip > dataSubset/salivary_repl2_R2.fq.gz
+
+and do the same for the lung samples
+::
+
+        gunzip -c ERR315326_1.fastq.gz | head -400000 | gzip > dataSubset/lung_repl1_R1.fq.gz
+        gunzip -c ERR315326_2.fastq.gz | head -400000 | gzip > dataSubset/lung_repl1_R2.fq.gz
+        gunzip -c ERR315424_1.fastq.gz | head -400000 | gzip > dataSubset/lung_repl2_R1.fq.gz
+        gunzip -c ERR315424_2.fastq.gz | head -400000 | gzip > dataSubset/lung_repl2_R2.fq.gz
+
+.. ::
+
+   fi
+
+Link your data into a working directory
+---------------------------------------
+Rather than copying the files into the working directory, let's just link them in. 
+this creates a reference so that UNIX knows where to find them but doesn't need to actually move them around.
+::
+   ln -fs $workingPath/refTransData/dataSubset/*.fq.gz $workingPath
+   
+.. note::
+ 
+   You can use your own data instead. The code can be applied to any paired end data set whatever the number of the studied 
+   groups and whatever the number of replicates. To minimize the code manipulation, you would rename your samples according to match 
+   our conventions: <groupname>_repl#_R(1or2).fq.qz
+
+
+install/load software
+---------------------
+Most of softwares used through this protocol require to be installed on the root dircteory of HPC. 
+This action requires adminstrative privilages. The IT supervisors of the HPC install software packages 
+in the form modules that you can simply load by the command: module load <software>
+
+Now let us load all the modules reuired to go through this protocol
+::
+
+   module load FastQC/0.11.2
+   module load Trimmomatic/0.32
+   module load TopHat2/2.0.12
+   module load PySAM/0.6
+   module load HTSeq/0.6.1
+   module load R
+   module load cufflinks/2.1.1
+
+
+.. note:: Loading TopHat2 on MSU HPC includes loading Bowtie/2.2.3.0 and Samtools/0.1.19.0
+   
+We will elaborate more on each software when we use it
+
+
+.. shell stop
+
+----
+
+Next: :doc:`m-quality`

@@ -1,0 +1,17 @@
+Differential expression
+=======================
+
+Now we have tried two different methods to summarize our expression: 
+* The HTseq has summarized the raw reads per genes and now this ready for further analysis by Packages like DEseq and edgeR.
+* Cufflinks has summarized the expression values as FPKM and now this is ready for further analysis by software like Cuffdif.
+
+So now we are going to disscuss the differential expression analysis by these softwares:
+
+.. toctree::
+   :maxdepth: 2
+
+   m-edgeR
+   m-cuffdiff
+
+
+----

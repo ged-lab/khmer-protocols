@@ -1,0 +1,67 @@
+Counting the reads that map to each feature
+===========================================
+
+After mapping of reads back to the transcriptome. Now it is time to figure out 
+the expression level of each expression unit. There are two main flavours of this process:
+
+
+Counting the reads that map to each gene
+----------------------------------------
+Simply count all the reads that map **uniquelly** to all exons of the gene. There are several 
+software packages that can do this e.g. 
+`htseq-count <http://www-huber.embl.de/users/anders/HTSeq/doc/count.html>`__.
+and `Featurecount <http://bioinf.wehi.edu.au/featureCounts/>`__.
+Both programs require the user to provide a gene model (Gene annotation file; GTF).
+Annotaions file of model oraganisms are avaliable on all gene banks (e.g. 
+`NCBI <http://www.ncbi.nlm.nih.gov/guide/howto/dwn-genome/>`__, 
+`UCSC <http://hgdownload.cse.ucsc.edu/downloads.html>`__, and
+`Ensemble <http://www.ensembl.org/info/data/ftp/index.html>`__). 
+Also they are avaliable through other genomic software projects e.g. 
+`Illumina iGenomes project <http://cufflinks.cbcb.umd.edu/igenomes.html>`__. 
+
+Go for:
+:doc:`./m-htseq`
+
+
+Counting the reads that map to each transcript
+----------------------------------------------
+Mapping the reads to transcripts (gene isoforms) rather than the whole genes will enable 
+the identification of changes in alterative splicaing machinary. Alternative splicing is believed to be 
+one of the most powerful regulatory mechanisms in severel biological conditions including 
+`cancer <http://www.ncbi.nlm.nih.gov/pubmed/24336324>`__, 
+`development <http://www.ncbi.nlm.nih.gov/pubmed/24752171>`__,
+`immmunology <http://www.ncbi.nlm.nih.gov/pubmed/23550649>`__, 
+`fertility <http://www.ncbi.nlm.nih.gov/pubmed/25474150>`__, and many others.
+
+`Cufflinks <http://cole-trapnell-lab.github.io/cufflinks/>`__ is the canonical software 
+package to do that. But there are other softwares for analysis of differential 
+splicing events (exon skipping, intron retention, etc.) 
+e.g. `MATS <http://rnaseq-mats.sourceforge.net/>`__, and 
+`MISO <http://genes.mit.edu/burgelab/miso/>`__.
+
+Cufflinks also 
+pools the results of all transcripts per gene to give an answer similar to the one obtained from 
+htseq-like packages. One comparative feature that should be considered is the tendency of Cufflinks to 
+utilize ambiguously aligned reads (versus htseq wich use anly the uniquelly mapped reads). 
+This feature might explain a lot of the differences in the output of the 2 softwares.
+
+Cufflinks can do the mapping based on the avaliable annoataion files which will 
+make Cufflinks operate on the known transcripts only. However Cufflinks can make 
+its own gene model. This feature has two inportant applications:
+
+* Prediction of denovo transcripts of known genes which is a valid possibility even in well annoatated oraganisms.  
+* Prediction of novel genes. This feature is very helpful for semi-model organisms that does not have a well annoatated transcriptome.
+
+On the other hand, mapping to transcripts requires the implementation of error prone modeling 
+approaches and thus requires rigorous laboratory confirmation. 
+
+
+Go for:
+:doc:`./m-cufflinks`
+
+
+----
+
+Links:
+
+* `Trapnell et al. 2013 Differential analysis of gene regulation at transcript resolution with RNA-seq <http://www.nature.com/nbt/journal/v31/n1/full/nbt.2450.html>`__

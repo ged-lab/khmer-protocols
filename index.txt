@@ -51,12 +51,20 @@ This is a protocol for assembling low- and medium-diversity metagenomes.
 Marine sediment and soil data sets may not be assemblable in the cloud
 just yet.
 
+Reference based RNAseq assembly: the refTrans Protocol
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:doc:`refTrans/index`
+
+This is a protocol for reference based transcriptome assembly. 
+Materials are based on two workshops given at MSU by Titus Brown and Matt Scholz on Dec 4/5 ad Dec 10/11. 
+
 Additional information
 ----------------------
 
 Need help? Either post comments on the bottom of each page, OR
 `sign up for the mailing list <http://lists.idyll.org/listinfo/protocols>`__.
-
+ 
 Have you used these protocols in a scientific publication?  We'll have
 citation instructions up soon.
 

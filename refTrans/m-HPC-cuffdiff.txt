@@ -1,0 +1,62 @@
+Submitting cuffdiff job to the MSU HPC queue
+============================================
+
+.. shell start
+
+
+We should start by specifying the resources required for our job and load the needed softwares
+::
+
+   echo "#PBS -l walltime=04:00:00,nodes=1:ppn=8,mem=12Gb" > run_cuffdiff.sh
+   echo "module load cufflinks/2.1.1" >> run_cuffdiff.sh
+
+Define the groups you want to compare (According to our sample naming conventions, 
+it should be exactly matching the stating name of your samples)
+::
+
+   echo "groups=(lung salivary)" >> run_cuffdiff.sh
+   
+We will prepare the replicates as comma separated lists to pass them to the shell scripts
+::
+
+   gp_replicates=()
+   for gp in "${groups[@]}"; do
+        replicates=()
+        for rep in $gp*_tophat; do
+            replicates+=("$workingPath/$rep/accepted_hits.bam")
+        done
+        gp_replicates+=($(echo ${replicates[*]} | tr ' ' ','))
+   done
+
+   echo "
+   cuffdiff \
+    --output-dir "$workingPath/cuffdiff_out" \
+    --num-threads 8 \
+    --multi-read-correct \
+    --frag-bias-correct ${homo_sapiens_genome} \
+    --labels ${groups[0]},${groups[1]} \
+    $GTF_file  ${gp_replicates[0]}  ${gp_replicates[1]}" >> run_cuffdiff.sh
+
+
+you can see your script::
+
+   less run_cuffdiff.sh
+   
+(use 'q' to exit). 
+
+
+Now submit your job
+::
+   
+   qsub run_cuffdiff.sh
+  
+
+.. note:: You will need to adjust the required wall time, memory and number of nodes(processor) required for your job
+
+You can use 'qstat | grep <username>' to check on your jobs' status.
+
+.. shell stop
+
+----
+
+Back: :doc:`m-cuffdiff`

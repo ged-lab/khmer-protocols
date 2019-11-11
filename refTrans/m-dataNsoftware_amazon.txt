@@ -1,0 +1,258 @@
+Amazon cloud computer
+=====================
+
+.. shell start
+
+Cloud computing involves deploying groups of remote servers and software 
+networks that allow centralized data storage and online access to computer 
+services or resources (`wikipedia <http://en.wikipedia.org/wiki/Cloud_computing>`__) .
+
+`Amazon Web Services <http://aws.amazon.com/>`__ offers a broad set of cloud 
+comutational services. In this protocol we will implement our whole pipeline on an
+Amazon Elastic Compute Cloud (EC2). 
+
+This does mean that the first thing you need to do is get your data
+over to the cloud.  
+
+The basics
+----------
+
+... Amazon is happy to rent disk space to you, in addition to compute time.
+They'll rent you disk space in a few different ways, but the way that's
+most useful for us is through what's called Elastic Block Store.  This
+is essentially a hard-disk rental service.
+
+There are two basic concepts -- "volume" and "snapshot". A "volume" can
+be thought of as a pluggable-in hard drive: you create an empty volume of
+a given size, attach it to a running instance, and voila! You have extra
+hard disk space.  Volume-based hard disks have two problems, however:
+first, they cannot be used outside of the "availability zone" they've
+been created in, which means that you need to be careful to put them
+in the same zone that your instance is running in; and they can't be shared
+amongst people.
+
+Snapshots, the second concept, are the solution to transporting and
+sharing the data on volumes.  A "snapshot" is essentially a frozen
+copy of your volume; you can copy a volume into a snapshot, and a
+snapshot into a volume.
+
+Run through :doc:`../amazon/index` once, to get the hang of the mechanics. 
+Also you can read :doc:`./data-snapshot` to see how I created my data snapshot
+   
+Launch a data snapshot 
+----------------------
+Go ahead and open the EC2 service to lunch a suitable instance(s). 
+Change your location on the top right corner of the page to be US East (N. Virginia).
+Push the **Launch Instance** button then follow these instructions:
+
+1. On "Step 1: Choose an Amazon Machine Image (AMI)": The protocol was prepared to run on "Ubuntu Server 14.04 LTS (HVM)"
+2. On "Step 2: Choose an Instance Type": You can run this protocol on **t2.medium instance** (2 vCPU and 4 GiB memory). But when you start running your own data you can scale this up or down according to your needs
+3. On "Step 3: Configure Instance Details": We will accept the default settings
+4. On "Step 4: Add storage": 
+     a. Start the default volume with 20 GiB
+     b. Add a new new EBS volume of 1 GiB general purpose SSD type. 
+     c. Use our snapshot (snap-6a5ddae5) to create the additional volume. You can search for it by the snapshot description "refTrans sample data".
+     d. Set the device name as /dev/sdf (be carefull about naming your device. For Linux instance, recommended device names are '/dev/sd[f-p]'. `Source: AWS Block Device Mapping Documentation <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/block-device-mapping-concepts.html>`__)
+     e. Mark the volume with **delete after termination** (you always have the snapshot to make new volumes).
+5. On "Step 5: Tag Instance": Give your instance a name.
+6. On "Step 6: Configure Security Group": Create a new security group and add security rules to enable ports 22, 80, and 443 (SSH, HTTP, and HTTPS).
+7. On "Step 7: Review Instance Launch": Review the information of your instance. You will see an alarm about the security of your instnce. This is ok, once you click launch, you will be able to make a key-paur (or use yours if you already have one)
+8. After you launch your instance, the confirmation page will show your instance ID. Click the instance ID to watch your instance status. In the lower half of the page, you will description info of your instance. Copy the puplic IP address to use in the next step.  
+
+Logging into your new cloud instance (Windows version)
+------------------------------------------------------
+You need an SSH client to conect from you own computer to the Amazon instance you just started in the cloud:
+
+1. Download PuTTY and PuTTYgen from: http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html
+2. Run PuTTYgen, Find and load your '.pem' file, and Now, "save private key"
+3. Run PuTTY, paste the public DNS in the host name. In the left category panel, expand the SSH entry, select Auth, find your private key and click open
+4. click yes if probmbted then Log in as "ubuntu"
+5. create a folder to contain all the files of this expermint and define this path
+ ::
+
+    mkdir refTransProject
+    workingPath=$"/home/ubuntu/refTransProject"
+    export workingPath
+
+6. Check for the directory structure ::
+
+    lsblk
+   
+   
+   You should see something like this::
+   
+     NAME    MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+     xvda    202:0    0   8G  0 disk
+     └─xvda1 202:1    0   8G  0 part /
+     xvdf    202:16   0   1G  0 disk
+
+        
+ | /dev/xvda1 is mounted as the root device (note the MOUNTPOINT is listed as /, the root of the Linux file system hierarchy), and 
+ | /dev/xvdf is attached, but it has not been mounted yet.
+
+   
+7. Create a mounting point and mount the new volume 
+ ::
+
+     mkdir $workingPath/refTransData
+     sudo mount /dev/xvdf $workingPath/refTransData
+
+   
+ | Check using lsblk again to make sure everything is ok.
+
+Now, link the data to the working directory. 
+This creates a reference so that UNIX knows where to find them but doesn't need to actually move them around.
+::
+   
+   ln -fs $workingPath/refTransData/*.fq.gz $workingPath
+
+
+Now if you typed::
+
+   ls refTransProject/
+
+You should see the 8 fastq files in your folder
+   
+.. note::
+
+   You can use your own data instead. The code can be applied to any paired end data set whatever the number of the studied 
+   groups and whatever the number of replicates. To minimize the code manipulation, you would rename your samples according to match 
+   our conventions: <groupname>_repl#_R(1or2).fq.qz
+
+install software and link to the working directory
+--------------------------------------------------
+
+.. note::
+   During the installation, copy the commands to your prompt one line 
+   at a time to make sure that every line pass safelly and because some 
+   commands are interactive requiring your confirmation to continue
+
+install prerequisites 
+::
+   
+   cd ~
+   sudo apt-get update
+   sudo apt-get install gcc g++ pkg-config wget make
+   sudo apt-get install unzip
+   sudo add-apt-repository ppa:webupd8team/java
+   sudo apt-get update
+   sudo apt-get install oracle-java7-installer
+   
+.. Source http://www.webupd8.org/2012/01/install-oracle-java-jdk-7-in-ubuntu-via.html
+
+install FastQC/0.11.2
+::
+
+  cd /usr/src/  
+  sudo wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.2.zip
+  sudo unzip fastqc_v0.11.2.zip
+  cd FastQC
+  sudo chmod 755 fastqc
+  sudo ln -s /usr/src/FastQC/fastqc /usr/local/bin/fastqc
+  
+     
+install Trimmomatic/0.32
+::
+   
+   cd /usr/src/
+   sudo wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.32.zip
+   sudo unzip Trimmomatic-0.32.zip
+   sudo mv /usr/src/Trimmomatic-0.32/trimmomatic-0.32.jar /usr/src/Trimmomatic-0.32/trimmomatic
+   TRIM=$"/usr/src/Trimmomatic-0.32"
+   export TRIM
+
+
+install Bowtie/2.2.3.0
+::
+
+   cd /usr/src/
+   sudo wget http://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.2.3/bowtie2-2.2.3-source.zip
+   sudo unzip bowtie2-2.2.3-source.zip
+   cd bowtie2-2.2.3
+   sudo make
+   PATH=$PATH:/usr/src/bowtie2-2.2.3
+   export PATH
+
+install TopHat2/2.0.13
+::
+
+   cd /usr/src/
+   sudo wget http://ccb.jhu.edu/software/tophat/downloads/tophat-2.0.13.Linux_x86_64.tar.gz
+   sudo tar -zxvf tophat-2.0.13.Linux_x86_64.tar.gz
+   cd /usr/bin
+   sudo ln -s /usr/src/tophat-2.0.13.Linux_x86_64/tophat2 ./tophat
+
+install samtools/0.1.19-1
+::
+   
+   cd ~
+   sudo apt-get install samtools
+
+install HTSeq/0.6.1
+::
+
+   cd /usr/src/
+   sudo apt-get install build-essential python2.7-dev python-numpy python-matplotlib
+   sudo wget https://pypi.python.org/packages/source/H/HTSeq/HTSeq-0.6.1.tar.gz
+   sudo tar -zxvf HTSeq-0.6.1.tar.gz
+   cd HTSeq-0.6.1
+   sudo python setup.py install --user
+   PATH=$PATH:/home/ubuntu/.local/bin
+   export PATH
+   sudo chmod -R 755 ~/.local
+
+
+install PySam
+::
+   
+   cd ~
+   sudo apt-get install python-pip
+   sudo pip install pysam
+   
+Install GNU R core and the edgeR package 
+::
+
+   cd ~
+   sudo apt-get install r-base-core
+   sudo Rscript -e "source('http://bioconductor.org/biocLite.R'); biocLite('edgeR');"
+   
+install cufflinks/2.1.1  
+::
+
+   cd /usr/src/
+   sudo wget http://cole-trapnell-lab.github.io/cufflinks/assets/downloads/cufflinks-2.1.1.Linux_x86_64.tar.gz
+   sudo tar -zxvf cufflinks-2.1.1.Linux_x86_64.tar.gz
+   cd /usr/bin
+   sudo ln -s /usr/src/cufflinks-2.1.1.Linux_x86_64/cufflinks .
+   sudo ln -s /usr/src/cufflinks-2.1.1.Linux_x86_64/cuffmerge .
+   sudo ln -s /usr/src/cufflinks-2.1.1.Linux_x86_64/cuffcompare .
+   sudo ln -s /usr/src/cufflinks-2.1.1.Linux_x86_64/cuffdiff .
+   sudo ln -s /usr/src/cufflinks-2.1.1.Linux_x86_64/gffread .
+   sudo ln -s /usr/src/cufflinks-2.1.1.Linux_x86_64/gtf_to_sam .
+   
+install tmux
+::
+
+   cd ~
+   sudo apt-get install tmux
+   
+.. Install FastX/0.0.13.2::   
+   cd ~
+   sudo apt-get install gcc g++ pkg-config wget make
+   wget http://hannonlab.cshl.edu/fastx_toolkit/libgtextutils-0.6.1.tar.bz2
+   tar -xjf libgtextutils-0.6.1.tar.bz2
+   cd libgtextutils-0.6.1
+   sudo sh -c "./configure && make && make install"
+   cd ~
+   wget http://hannonlab.cshl.edu/fastx_toolkit/fastx_toolkit-0.0.13.2.tar.bz2 
+   tar xjf fastx_toolkit-0.0.13.2.tar.bz2
+   cd fastx_toolkit-0.0.13.2/
+   sudo sh -c "./configure && make && make install"
+   export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+  
+.. shell stop
+
+----
+
+Next: :doc:`m-quality`

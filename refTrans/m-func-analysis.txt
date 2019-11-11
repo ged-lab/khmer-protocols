@@ -1,0 +1,50 @@
+Functional and network analysis on differentially expressed genes
+=================================================================
+
+There are a number of sites that let you analyze gene lists, including
+`DAVID <http://david.abcc.ncifcrf.gov/>`__.  I have gotten a number of
+recommendations for `PANTHER <http://www.pantherdb.org/>`__.  PANTHER
+lets you upload gene lists and explore their functional categories
+interactively or in a gene list/annotation format.
+
+More specifically, you can explore your RNAseq data with
+
+* functional classifications, in pie chart or in list;
+* tests for statistical overrepresentation;
+* tests for statistical enrichment based on associated fold change.
+
+You need to crop and transform the data a little bit before using the
+functional classification.  The steps are:
+
+1. Download `the CSV file <https://raw.githubusercontent.com/ngs-docs/2014-msu-rnaseq/master/files/subset/edgeR-lung-vs-salivary.csv>`__.  If you've produced your own, copy it over from the HPC.
+
+2. Open it in Excel.
+
+3. Choose an FDR cutoff (suggest FDR < 0.05 or lower) and delete all the rows after that (or, copy the rows into a new spreadsheet -- might be quicker).
+
+4. Save as a "Tab-delimited text."  (Note, on Mac OS X, you may need to save this as "Windows formatted text" instead.)
+
+This is now a file you can upload to PANTHER.
+
+(`You can download my copy of this here <http://2014-msu-rnaseq.readthedocs.org/en/latest/_static/subset/edgeR-panther-upload.txt>`__)
+
+To do the analysis, go to http://www.pantherdb.org/. In box 1, select "Choose file"
+and find the CSV file you want to upload to PANTHER.  Nothing else in box
+one should be changed.
+
+In box 2, select "Homo sapiens."
+
+In box 3, select either "Functional analysis classification viewed in
+gene list" or "Functional analysis classification viewed in pie
+chart."
+
+Click submit.
+
+Now you can explore the results!
+
+----
+
+Links:
+
+* `PANTHER database <http://www.pantherdb.org/>`__
+

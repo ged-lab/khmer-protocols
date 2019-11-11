@@ -1,0 +1,201 @@
+Create a data snapshot on Amazon
+================================
+
+.. shell start
+
+Essentially you create a disk; attach it; format it;
+and then copy things to and from it.
+
+
+Getting started: lunch EC2 instance with extra EBS volume
+---------------------------------------------------------
+We will follow up the main events and highlight the critical points:
+
+1. log into your AWS account
+
+2. In the AWS managmenet consol:
+       1. click EC2 (Amazon Elastic Compute Cloud) to open the EC2 Dashboard
+       2. Change your location on the top right corner of the page to be US East (N. Virginia)
+       3. press “Launch Instance” (midway down the page)
+       4. Choose an Amazon Machine Image (AMI): Ubuntu Server 14.04 LTS (HVM), SSD Volume Type - ami-9a562df2
+       5. Choose an Instance Type: for now I am using the free tier t2.micro instance
+       6. Next: Configure Instance Details: Keep the defaults
+       7. **Next: Add Storage**: Keep the defualt storage with 8 GiB as it is and add new EBS volume of 1 GiB general purpose SSD type (to create data snapshot on it). Make sure it does not delete after termination
+       8. Next: Tag instance: give a name to your instance (I called mine refTrans_instance)
+       9. Next: Configure Security Group: Create a new security group and adjust your security rules to enable ports 22, 80, and 443 (SSH, HTTP, and HTTPS).
+       10. click "review and lunch" the click "lunch"
+       11. from the top drop-down menu, choose an existing key pair or create a new one and download to your disk
+       12. click lunch instance
+       13. scroll down and click view instance
+       14. copy the Public DNS in your clipboard
+
+Logging into your new instance "in the cloud" (Windows version)
+--------------------------------------------------------------
+       1. Download PuTTY and PuTTYgen from: http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html
+       2. Run PuTTYgen, Find and load your '.pem' file, and Now, "save private key"
+       3. Run PuTTY, paste the public DNS in the host name & expand SSH, click Auth (do not expand), find your private key and click open
+       4. click yes if probmbted then Log in as "ubuntu"
+
+Getting the data
+----------------
+
+We'll be using a few RNAseq data sets from Fagerberg et al., `Analysis
+of the Human Tissue-specific Expression by Genome-wide Integration of
+Transcriptomics and Antibody-based Proteomics
+<http://www.mcponline.org/content/13/2/397.full>`__.
+
+You can get this data from the European Nucleotide Archive under
+`ERP003613 <http://www.ebi.ac.uk/ena/data/view/ERP003613>`. 
+All samples in this project are `paired end 
+<http://www.illumina.com/technology/next-generation-sequencing/paired-end-sequencing_assay.html>`__ . 
+So each sample is represented by 2 files. These files are in 
+`FASTQ Format <http://en.wikipedia.org/wiki/FASTQ_format>`__ .
+
+
+In this tutorial we will work with two tissues: `salivary gland
+<http://www.ebi.ac.uk/ena/data/view/SAMEA2151887>`__ and `lung
+<http://www.ebi.ac.uk/ena/data/view/SAMEA2155770>`__.  Note that each
+tissue has two replicates, and each replicate has two files for the paired end reads
+
+make a directory to download the data to the Amazon cloud
+::
+
+   mkdir refTransData
+   cd refTransData
+   
+Download the sequencing files of the salivary gland
+::
+
+   wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR315/ERR315325/*
+   wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR315/ERR315382/*
+   
+Download the sequencing files of the lung tissue
+::
+
+   wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR315/ERR315326/*
+   wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR315/ERR315424/*
+
+
+Now do::
+
+   ls -la refTransData/
+
+You'll see something like ::
+
+   -r--r--r-- 1 mscholz common-data 3714262571 Dec  4 08:44 ERR315325_1.fastq.gz
+   -r--r--r-- 1 mscholz common-data 3714262571 Dec  4 08:44 ERR315325_2.fastq.gz
+   ...
+   
+which tells you that this file is about 900 MB. You can go a head and use these files 
+for the reset of the protocl. But for the sake of time (& memory), we will run our demo 
+on a subset of this dat  
+
+
+Prepare the working data on the EBS volume
+------------------------------------------
+
+1. Use the lsblk command to view your available disk devices and their mount points
+ ::
+
+    lsblk
+   
+
+ You should see something like this ::
+   
+    NAME    MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+    xvda    202:0    0   8G  0 disk
+    └─xvda1 202:1    0   8G  0 part /
+    xvdf    202:16   0   1G  0 disk
+
+        
+ |   /dev/xvda1 is mounted as the root device (note the MOUNTPOINT is listed as /, the root of the Linux file system hierarchy),
+ |   and /dev/xvdf is attached, but it has not been mounted yet.
+       
+2. New volume does not have a file system. Use the sudo file -s device command to double check 
+ ::
+           
+    sudo file -s /dev/xvdf
+
+
+   If the output of the previous command shows simply data for the device, then there is no file system on the device and you need to create one. 
+       
+3. Create an ext4 file system on the volume 
+ ::
+    
+    sudo mkfs -t ext4 /dev/xvdf
+       
+4. Create a mounting point  directory for the volume. The mount point is where the volume is located in the file system tree and where you read and write files to after you mount the volume
+ ::
+    
+    sudo mkdir refTransData/dataSubset
+
+5. Mount the volume at the location of the project folder
+ ::
+    
+    sudo mount /dev/xvdf refTransData/dataSubset
+
+6. Copy in a subset of the data (100,000 reads)
+ ::
+
+    sudo sh -c 'gunzip -c ERR315325_1.fastq.gz | head -400000 | gzip > dataSubset/salivary_repl1_R1.fq.gz'
+    sudo sh -c 'gunzip -c ERR315325_2.fastq.gz | head -400000 | gzip > dataSubset/salivary_repl1_R2.fq.gz'
+    sudo sh -c 'gunzip -c ERR315382_1.fastq.gz | head -400000 | gzip > dataSubset/salivary_repl2_R1.fq.gz'
+    sudo sh -c 'gunzip -c ERR315382_2.fastq.gz | head -400000 | gzip > dataSubset/salivary_repl2_R2.fq.gz'
+
+        
+ and do the same for the lung samples
+ ::
+
+    sudo sh -c 'gunzip -c ERR315326_1.fastq.gz | head -400000 | gzip > dataSubset/lung_repl1_R1.fq.gz'
+    sudo sh -c 'gunzip -c ERR315326_2.fastq.gz | head -400000 | gzip > dataSubset/lung_repl1_R2.fq.gz'
+    sudo sh -c 'gunzip -c ERR315424_1.fastq.gz | head -400000 | gzip > dataSubset/lung_repl2_R1.fq.gz'
+    sudo sh -c 'gunzip -c ERR315424_2.fastq.gz | head -400000 | gzip > dataSubset/lung_repl2_R2.fq.gz'
+
+
+Getting Set Up with the AWS Command Line Interface and make the snapshot
+------------------------------------------------------------------------
+The AWS Command Line Interface is a unified tool to manage your AWS services. It will help us making a snapshot of our data and a lot more
+Follow the `Amazon documenation <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-set-up.html#cli-signup>`__. Briefly:
+
+1. Get your access key ID and secret access key through `IAM console <https://console.aws.amazon.com/iam/home?#home>`__. Do not forget to add adminstrative access role
+
+2. install AWS Command Line Interface
+ ::
+   
+    cd ~
+    sudo apt-get update
+    sudo apt-get install awscli  
+   
+3. configure credentials by running
+ ::
+
+    aws configure
+  
+ The AWS CLI will prompt you for four pieces of information::
+
+    AWS Access Key ID [None]: You got it from IAM console, it should be something like AKIAIOSFODNN7EXAMPLE
+    AWS Secret Access Key [None]: You got it from IAM console, it should be something like wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    Default region name [None]: This is the region of your bucket (in our case it is us-east-1)
+    Default output format [None]: json
+
+  
+4. Create a snapshot (get the volume-id from the EC2 dashboard in the volums tab)
+ ::
+    
+    sudo umount -d /dev/xvdf
+    aws ec2 create-snapshot --volume-id vol-90ab2b8b --description "refTrans sample data"
+   
+ The snapshot has an ID: snap-6a5ddae5
+
+5. Now we can share this snapshot but we need to modify its the permissions
+ ::
+
+    aws ec2 modify-snapshot-attribute --snapshot-id snap-6a5ddae5 --attribute createVolumePermission --operation-type add
+   
+Now you can stop your instance and even delete the EBS divers. 
+
+.. shell stop
+
+----
+
+Back: :doc:`m-dataNsoftware_amazon`
