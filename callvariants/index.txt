@@ -1,0 +1,29 @@
+=============================
+The Variant Calling Protocol
+=============================
+
+:authors: Aditi Gupta, C. Titus Brown.
+
+This is a protocol for identifying Single Nucleotide Polymorphisms (SNPs) in next-generation sequencing datasets.  It is part of khmer-protocols; see
+`the main page for this version <../index.html>`__ for citation
+information, and `the khmer-protocols site
+<http://khmer-protocols.readthedocs.org/>`__ for the latest released
+version.
+
+
+The tutorial:
+
+.. toctree::
+   :maxdepth: 1
+
+   0-download-and-save
+   1-quality-control
+   2-mapping
+   3-variant-calling
+   4-annotation
+   5-visualization
+
+Reference material
+------------------
+:doc:`../docs/command-line`
+:doc:`../amazon/index`

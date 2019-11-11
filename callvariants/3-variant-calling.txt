@@ -1,0 +1,93 @@
+==================
+3. Variant Calling
+==================
+
+We will use SAMTools to call SNPs from the mapped reads.
+
+Index the reference genome using SAMTools
+-----------------------------------------
+
+First, we need to generate an index for the reference (H37Rv) with samtools (this index is different than the one we generated using bowtie2-build):
+
+.. note::
+   samtools faidx <reference.fa>
+
+For our example, this will be:
+::
+ 
+   samtools faidx H37Rv.fa
+
+This generates a file 'NC_018143.fna.fai' in the current directory.
+
+Convert SAM to BAM format and sort & index the BAM file
+-------------------------------------------------------
+
+Lets generate the binary version of the SAM format, which takes less space and is accepted by most software for downstream analyses.
+
+.. note::
+   
+   samtools view -bt reference.fa.fai aln.sam > aln.bam
+
+For our example, this will be:
+:: 
+   samtools view -bt NC_018143.fna.fai SRR671851_mapped.sam > SRR671851_mapped.bam  
+
+Now lets sort and index the bam file:
+
+.. note::
+
+   samtools sort aln.bam aln.sorted
+   samtools index aln.sorted.bam
+
+The 'samtools sort' command creates a new file aln.sorted.bam, and the 'samtools index' indexes this aln.sorted.bam file and creates an index file aln.sorted.bam.bai.
+
+Lets run these commands for our example data:
+::
+
+   samtools sort SRR671851_mapped.bam SRR671851_mapped.sorted
+   samtools index SRR671851_mapped.sorted.bam
+
+'samtools idxstats' can be used to determine number of reads that mapped to the reference genome. For example:
+::
+
+   samtools idxstats SRR671851_mapped.sorted.bam
+
+outputs:
+gi|561108321|ref|NC_018143.2|	4411709	195422	608
+*	0	0	1024
+
+where 'gi|561108321|ref|NC_018143.2|' is the reference name, 4411709 is the reference genome length, 195422 is the number of reads mapped to the reference, and 608 is the number of unmapped reads whose mate mapped to the reference. Other unmapped reads (orphans, or mates where both reads didn't map) are output in the second line (here, 1024 such reads). 
+
+Call SNPs
+---------
+
+SAMTools can be used to call variants in the mapped reads as follows:
+.. note::
+
+   samtools mpileup -uDgf ref.fa aln.bam | bcftools view -bvcg - > var.raw.bcf 
+   bcftools view var.raw.bcf > var.raw.vcf
+
+For our example, this will be:
+::
+
+   samtools mpileup -uDgf NC_018143.fna SRR671851_mapped.sorted.bam | bcftools view -bvcg - > var.raw.bcf
+   bcftools view var.raw.bcf > var.raw.vcf
+
+Option -u tells samtools to output in uncompressed bcf format, -D tells it to use the default read-depth (8000, but this can be changed by supplying a number after -D), option -g tells it to compute genotype likelihoods and write them to the bcf file, -f tells it that the file following the flag is the reference fasta file.
+
+Mpileup looks at read bases that map to each position in the reference genome and thus can identify mismatches (SNPs), indels, and so forth. Bcftools calls variants from mpileup output by bayesian inference, and outputs only the variant sites in bcf format. 'bcf' is short for binary call format, and 'bcftools view' converts that to human-readable variant call format (vcf): this file contains the variant calls (SNPs/indels identified in the mapped reads). For our example, the first three lines after the comments (lines beginning with '##') in the var.raw.vcf looks like:
+
+.. note::
+   #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SRR671851_mapped.sorted.bam
+   gi|561108321|ref|NC_018143.2|	1849	.	C	A	68	.	DP=3;VDB=6.363195e-02;AF1=1;AC1=2;DP4=0,0,2,1;MQ=37;FQ=-36	GT:PL:DP:GQ	1/1:100,9,0:3:16
+   gi|561108321|ref|NC_018143.2|	1977	.	A	G	12.3	.	DP=1;AF1=1;AC1=2;DP4=0,0,0,1;MQ=42;FQ=-30	GT:PL:DP:GQ	1/1:42,3,0:1:5
+
+1st column is the reference genome (or chromosome), 2nd column is the genome position in the reference, 4th column is the base in the reference genome, 5th column is the SNP bases separated by comma (a single SNP base in our example here).
+
+The INFO string (8th column) gives you information about the variant call:
+	DP is the number of reads that mapped to this position.
+	DP4 is a better measure than DP, because it tells "high-quality" number of reference and alternate (SNP) bases at that position. In the 2nd line above: DP4=0,0,2,1 means that there were 0 bases that matched the reference base (on forward and reverse reads), and 3 bases that matched the SNP (2 on forward reads, 1 on reverse read).
+	MQ is the root-mean square mapping quality of the reads that mapped. Here, it is 37 in the 2nd line, which is pretty good.
+
+
+
